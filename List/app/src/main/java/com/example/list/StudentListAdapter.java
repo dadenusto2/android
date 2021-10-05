@@ -1,5 +1,6 @@
 package com.example.list;
 
+import android.annotation.SuppressLint;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -14,11 +15,18 @@ public class StudentListAdapter extends BaseAdapter {
     ArrayList<Student> mStudents = new ArrayList<>();
     Context mContext;
     LayoutInflater mInflater;
+    String chooseFaculty;
+
 
     public StudentListAdapter(ArrayList<Student> students, Context context) {
         mStudents = students;
         mContext = context;
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        chooseFaculty = null;
+    }
+
+    public void setChooseFaculty(String chooseFaculty) {
+        this.chooseFaculty = chooseFaculty;
     }
 
     public int getCount() {
@@ -33,6 +41,7 @@ public class StudentListAdapter extends BaseAdapter {
         return position;
     }
 
+    @SuppressLint("ViewHolder")
     public View getView(int position, View view, ViewGroup parent) {
         view = mInflater.inflate(R.layout.student_element, parent, false);
         if (mStudents.isEmpty()) return view;
@@ -45,6 +54,18 @@ public class StudentListAdapter extends BaseAdapter {
             ((LinearLayout) view.findViewById(R.id.llElement)).setBackgroundColor(
                     mContext.getResources().getColor(R.color.odd_element)
             );
+
+        if (mStudents.get(position).getFacultet().trim().equalsIgnoreCase(chooseFaculty)) {
+            ((TextView) view.findViewById(R.id.tvElementFIO)).setTextColor(
+                    mContext.getResources().getColor(R.color.faculty_element)
+            );
+            ((TextView) view.findViewById(R.id.tvElementFacultet)).setTextColor(
+                    mContext.getResources().getColor(R.color.faculty_element)
+            );
+            ((TextView) view.findViewById(R.id.tvElementGroup)).setTextColor(
+                    mContext.getResources().getColor(R.color.faculty_element)
+            );
+        }
 
         return view;
     }

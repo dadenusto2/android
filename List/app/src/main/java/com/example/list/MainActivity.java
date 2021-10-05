@@ -83,7 +83,8 @@ public class MainActivity extends AppCompatActivity {
         mStudentListAdapter.notifyDataSetChanged();
     }
 
-    public void allFaculty(View view) {
-
+    public void showAllStudentsByFaculty(View view) {
+        mStudentListAdapter.setChooseFaculty(((TextView) view.findViewById(R.id.tvElementFacultet)).getText().toString().trim());
+        mStudentListAdapter.notifyDataSetChanged();
     }
 }

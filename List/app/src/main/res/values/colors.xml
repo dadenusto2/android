@@ -8,4 +8,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="odd_element">#3C4CAF50</color>
+    <color name="faculty_element">#D50B50</color>
 </resources>
