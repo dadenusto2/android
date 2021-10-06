@@ -41,6 +41,7 @@ public class StudentListAdapter extends BaseAdapter {
         return position;
     }
 
+
     @SuppressLint("ViewHolder")
     public View getView(int position, View view, ViewGroup parent) {
         view = mInflater.inflate(R.layout.student_element, parent, false);
