@@ -2,6 +2,7 @@ package com.example.list;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Student> mStudents;
     StudentListAdapter mStudentListAdapter;
 
+
     public void createStudentList(View view){
 
         mStudents = new ArrayList<>();
@@ -69,6 +71,28 @@ public class MainActivity extends AppCompatActivity {
         ((LinearLayout) findViewById(R.id.llInput)).setVisibility(View.VISIBLE);
         ((Button) findViewById(R.id.bAddStudent)).setVisibility(View.VISIBLE);
         ((Button) findViewById(R.id.bCreateStudentList)).setVisibility(View.GONE);
+
+        AdapterView.OnItemClickListener clStudent = new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View itemClicked, int position, long id) {
+                Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
+
+                /*
+                intent.putExtra("fio", mStudents.get(position).getFIO());
+                intent.putExtra("facultet", mStudents.get(position).getFacultet());
+                intent.putExtra("group", mStudents.get(position).getGroup());
+
+                Bundle bundle = new Bundle();
+                bundle.putString("fio", mStudents.get(position).getFIO());
+                bundle.putString("facultet", mStudents.get(position).getFacultet());
+                bundle.putString("group", mStudents.get(position).getGroup());
+
+                intent.putExtras(bundle);*/
+                intent.putExtra("student", mStudents.get(position));
+                startActivity(intent);
+            }
+        };
+        listView.setOnItemClickListener(clStudent);
     }
 
     public void addStudent(View view) {
@@ -82,9 +106,13 @@ public class MainActivity extends AppCompatActivity {
         ((EditText) findViewById(R.id.editGroup)).setText("");
         mStudentListAdapter.notifyDataSetChanged();
     }
-
-    public void showAllStudentsByFaculty(View view) {
+    /*public void showAllStudentsByFaculty(View view) {
         mStudentListAdapter.setChooseFaculty(((TextView) view.findViewById(R.id.tvElementFacultet)).getText().toString().trim());
         mStudentListAdapter.notifyDataSetChanged();
-    }
+
+        Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
+        intent.putExtra("fio", mStudents.get(position).)
+        startActivity(intent);
+    }*/
+
 }
