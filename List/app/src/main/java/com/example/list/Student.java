@@ -83,5 +83,16 @@ public class Student implements Parcelable {
                 '}';
     }
 
+    public ArrayList<Subject> getSubjects() {
+        return mSubjects;
+    }
+
+    public void setSubjects(ArrayList<Subject> subjects) {
+        mSubjects = subjects;
+    }
+
+    public void addSubject(Subject subject){
+        mSubjects.add(subject);
+    }
 
 }
