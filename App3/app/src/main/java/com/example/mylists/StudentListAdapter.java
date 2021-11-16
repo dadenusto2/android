@@ -45,16 +45,17 @@ public class StudentListAdapter extends BaseAdapter {
         ((TextView) view.findViewById(R.id.tvElementFaculty)).setText(mStudents.get(position).getFaculty());
         ((TextView) view.findViewById(R.id.tvElementGroup)).setText(mStudents.get(position).getGroup());
 
-        ((TextView) view.findViewById(R.id.tvSubjectMark)).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-//                        showPopupMenu(view, position);
-                    }
-                }
-        );
+//        ((TextView) view.findViewById(R.id.tvSubjectMark)).setOnClickListener(
+//                new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+////                        showPopupMenu(view, position);
+//                    }
+//                }
+//        );
         return view;
     }
+
 
     public void colorFaculty(int position, AdapterView<?> parent){
         String faculty = mStudents.get(position).getFaculty();

@@ -8,15 +8,7 @@
         android:id="@+id/llTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <Button
-            android:id="@+id/bCreateList1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:onClick="createList1"
-            android:text="Создать список" />
-    </LinearLayout>
+        android:orientation="vertical"/>
 
     <LinearLayout
         android:id="@+id/llMiddle"
@@ -26,17 +18,10 @@
         android:orientation="vertical">
 
         <ListView
-            android:id="@+id/lvList1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
-
-        </ListView>
-
-        <ListView
             android:id="@+id/lvList2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_weight="1">
 
         </ListView>
@@ -47,7 +32,8 @@
         android:id="@+id/llBottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <LinearLayout
             android:id="@+id/llInput"
@@ -71,7 +57,7 @@
                     android:text="ФИО" />
 
                 <EditText
-                    android:id="@+id/editFIO"
+                    android:id="@+id/editDialog_FIO"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -96,7 +82,7 @@
                     android:text="Факультет" />
 
                 <EditText
-                    android:id="@+id/editFaculty"
+                    android:id="@+id/editDialog_Facultet"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -114,7 +100,7 @@
                     android:text="Группа" />
 
                 <EditText
-                    android:id="@+id/editGroup"
+                    android:id="@+id/editDialog_Group"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -126,7 +112,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="invisible">
 
             <Button
                 android:id="@+id/bCreateStudentList"

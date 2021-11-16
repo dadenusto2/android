@@ -14,4 +14,5 @@
     <color name="colorPrimaryVariant">#FF3700B3</color>
     <color name="colorSecondary">#05633A</color>
     <color name="colorSecondaryVariant">#03512F</color>
+    <color name="redShadow">#77EF0404</color>
 </resources>

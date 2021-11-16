@@ -1,5 +1,6 @@
 package com.example.list;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -28,11 +29,26 @@ public class StudentInfoActivity extends AppCompatActivity {
     }
 
     public void addSubject(View view) {
-        s.addSubject(new Subject(
-                ((EditText) findViewById(R.id.editASI_SubjectName)).getText().toString(),
-                Integer.parseInt(((EditText) findViewById(R.id.editASI_Mark)).getText().toString())
-        ));
-        mSubjectListAdapter.notifyDataSetChanged();
+        AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
+        inputDialog.setTitle("Информация о дисциплине");
+        inputDialog.setCancelable(false);
+        View vv = (LinearLayout) getLayoutInflater().inflate(R.layout.subject_input, null);
+        inputDialog.setView(vv);
+        final EditText mName = vv.findViewById(R.id.editDialog_SubjectName);
+        final Spinner mMark = vv.findViewById(R.id.sDialog_Mark);
+
+        inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                s.addSubject(new Subject(
+                        mName.getText().toString(),
+                        Integer.parseInt(mMark.getSelectedItem().toString())
+                ));
+                mSubjectListAdapter.notifyDataSetChanged();
+            }
+        })
+                .setNegativeButton("Отмена", null);
+        inputDialog.show();
     }
 
     public void onExit(View view){

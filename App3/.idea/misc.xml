@@ -4,13 +4,19 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/Michael/AndroidStudioProjects/App3/app/src/main/res/layout/main_ll.xml" value="0.17119565217391305" />
-        <entry key="..\:/android/App3/app/src/main/res/layout/activity_student_info.xml" value="0.17552083333333332" />
-        <entry key="..\:/android/App3/app/src/main/res/layout/student_input.xml" value="0.17552083333333332" />
+        <entry key="..\:/android/App3/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.4630208333333333" />
+        <entry key="..\:/android/App3/app/src/main/res/drawable/ic_launcher_background.xml" value="0.4630208333333333" />
+        <entry key="..\:/android/App3/app/src/main/res/layout/activity_student_info.xml" value="0.3828571428571429" />
+        <entry key="..\:/android/App3/app/src/main/res/layout/main_ll.xml" value="0.2857142857142857" />
+        <entry key="..\:/android/App3/app/src/main/res/layout/student_element.xml" value="0.18857142857142858" />
+        <entry key="..\:/android/App3/app/src/main/res/layout/student_input.xml" value="0.2857142857142857" />
         <entry key="..\:/android/App3/app/src/main/res/layout/subject_element.xml" value="0.17552083333333332" />
         <entry key="..\:/android/App3/app/src/main/res/layout/subject_input.xml" value="0.25" />
         <entry key="..\:/android/App3/app/src/main/res/layout/subjectinput.xml" value="0.17552083333333332" />
-        <entry key="..\:/android/App3/app/src/main/res/menu/main_menu.xml" value="0.17552083333333332" />
+        <entry key="..\:/android/App3/app/src/main/res/menu/main_menu.xml" value="0.2857142857142857" />
         <entry key="..\:/android/App3/app/src/main/res/menu/popup_menu.xml" value="0.16666666666666666" />
+        <entry key="..\:/android/App3/app/src/main/res/menu/student_action.xml" value="0.25885416666666666" />
+        <entry key="..\:/android/App3/app/src/main/res/menu/subject_menu.xml" value="0.5142857142857143" />
       </map>
     </option>
   </component>
