@@ -36,6 +36,11 @@ public class StudentInfoActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.subject_menu, menu);
         mMenu = menu;
+        if (s.getSubjects().size()==0){
+            mMenu.findItem(R.id.changeSb).setVisible(false);
+            mMenu.findItem(R.id.deleteSb).setVisible(false);
+
+        }
         return true;
     }
 
@@ -51,6 +56,7 @@ public class StudentInfoActivity extends AppCompatActivity {
                 return true;
             }
             case R.id.deleteSb:{
+                deleteSubject(mPosition);
                 return true;
             }
             case R.id.back:{
@@ -131,6 +137,22 @@ public class StudentInfoActivity extends AppCompatActivity {
         ListView listView = findViewById(R.id.lvASI_Subjects);
         mSubjectListAdapter = new SubjectListAdapter(s.getSubjects(), this);
         listView.setAdapter(mSubjectListAdapter);
+
+        AdapterView.OnItemClickListener clSubject = new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                mPosition=position;
+                System.out.println(mPosition);
+                for (int i = 0; i< listView.getCount();i++) {
+                    if (i == mPosition) {
+                        listView.getChildAt(i).setBackgroundColor(getResources().getColor(R.color.redShadow));
+                    } else {
+                        listView.getChildAt(i).setBackgroundColor(getResources().getColor(R.color.white));
+                    }
+                }
+            }
+        };
+        listView.setOnItemClickListener(clSubject);
     }
 
     public void showPopupMenu(View view, int position) {
@@ -168,7 +190,7 @@ public class StudentInfoActivity extends AppCompatActivity {
 
     public void addSubject() {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
-        inputDialog.setTitle("Инофрмация о дисциплине");
+        inputDialog.setTitle("Добавление оценки");
         inputDialog.setCancelable(false);
         View vv = (LinearLayout) getLayoutInflater().inflate(R.layout.subject_input, null);
         inputDialog.setView(vv);
@@ -186,6 +208,8 @@ public class StudentInfoActivity extends AppCompatActivity {
 //                                Integer.parseInt(mMark.getSelectedItem().toString())
 //                        ));
                 System.out.println(mName);
+                mMenu.findItem(R.id.changeSb).setVisible(true);
+                mMenu.findItem(R.id.deleteSb).setVisible(true);
                 mSubjectListAdapter.notifyDataSetChanged();
             }
         })
@@ -193,27 +217,54 @@ public class StudentInfoActivity extends AppCompatActivity {
         inputDialog.show();
     }
 
+    private int getIndex(Spinner spinner, Integer myInt){
+        for (int i=0;i<spinner.getCount();i++){
+            System.out.println(spinner.getItemAtPosition(i).toString() + " " + myInt);
+            if (spinner.getItemAtPosition(i).toString().equalsIgnoreCase(myInt.toString())){
+                return i;
+            }
+        }
+        return 0;
+    }
+
     public void changeSubject(int position) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
-        inputDialog.setTitle("Инофрмация о дисциплине");
+        inputDialog.setTitle("Изменение оценки");
         inputDialog.setCancelable(false);
         View vv = (LinearLayout) getLayoutInflater().inflate(R.layout.subject_input, null);
         inputDialog.setView(vv);
         final EditText mName = vv.findViewById(R.id.editDialog_subjectName);
         final Spinner mMark = vv.findViewById(R.id.sDialog_mark);
         mName.setText(s.getSubjects().get(position).getName());
-        ArrayAdapter myAdap = (ArrayAdapter) mMark.getAdapter(); //cast to an ArrayAdapter
+        mMark.setSelection(getIndex(mMark, s.getSubjects().get(position).getMark()));
 
-        int spinnerPosition = myAdap.getPosition(s.getSubjects().get(position).getMark());
-        mMark.setSelection(spinnerPosition);
-
-        inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
+        inputDialog.setPositiveButton("Изменить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                s.addSubject(new Subject(
+                s.getSubjects().set(mPosition, new Subject(
                         mName.getText().toString(),
                         Integer.parseInt(mMark.getSelectedItem().toString())
                 ));
+                mSubjectListAdapter.notifyDataSetChanged();
+            }
+        })
+                .setNegativeButton("Отмена", null);
+        inputDialog.show();
+    }
+
+    public void deleteSubject(int position) {
+        AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
+        inputDialog.setTitle("Удалить оценку?");
+        inputDialog.setCancelable(false);
+
+        inputDialog.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                s.getSubjects().remove(position);
+                if(s.getSubjects().size()==0){
+                    mMenu.findItem(R.id.changeSb).setVisible(false);
+                    mMenu.findItem(R.id.deleteSb).setVisible(false);
+                }
                 mSubjectListAdapter.notifyDataSetChanged();
             }
         })

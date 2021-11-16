@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
             case R.id.stAdd:{
-                addStudent();
+                addStudent("", "", "");
                 return true;
             }
             case R.id.stChange:{
@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
         inputDialog.show();
     }
 
-    public void addStudent() {
+    public void addStudent(String fio, String facultet, String group) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
         inputDialog.setTitle("Добавить студента");
         inputDialog.setCancelable(false);
@@ -223,18 +223,35 @@ public class MainActivity extends AppCompatActivity {
         final EditText mFIO = vv.findViewById(R.id.editDialog_FIO);
         final EditText mFacultet = vv.findViewById(R.id.editDialog_Facultet);
         final EditText mGroup= vv.findViewById(R.id.editDialog_Group);
-
+        mFIO.setText(fio, TextView.BufferType.EDITABLE);
+        mFacultet.setText(facultet, TextView.BufferType.EDITABLE);
+        mGroup.setText(group, TextView.BufferType.EDITABLE);
         inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                mStudents.add(new Student(
-                        mFIO.getText().toString(),
-                        mFacultet.getText().toString(),
-                        mGroup.getText().toString()
-                ));
-                mMenu.findItem(R.id.stChange).setVisible(true);
-                mMenu.findItem(R.id.stDelete).setVisible(true);
-                mStudentListAdapter.notifyDataSetChanged();
+                if (mFIO.getText().toString().isEmpty() || mFacultet.getText().toString().isEmpty()|| mGroup.getText().toString().isEmpty()){
+                    AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                    alertDialog.setTitle("Ошибка ввода");
+                    alertDialog.setMessage("Введены не все данные!");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    addStudent(mFIO.getText().toString(), mFacultet.getText().toString(), mGroup.getText().toString());
+                                }
+                            });
+                    alertDialog.show();
+                }
+                else {
+                    mStudents.add(new Student(
+                            mFIO.getText().toString(),
+                            mFacultet.getText().toString(),
+                            mGroup.getText().toString()
+                    ));
+                    mMenu.findItem(R.id.stChange).setVisible(true);
+                    mMenu.findItem(R.id.stDelete).setVisible(true);
+                    mStudentListAdapter.notifyDataSetChanged();
+                }
             }
         })
                 .setNegativeButton("Отмена", null);
