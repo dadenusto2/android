@@ -12,9 +12,10 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 public class StudentListAdapter extends BaseAdapter {
-    ArrayList<Student> mStudents = new ArrayList<>();
+    ArrayList<Student> mStudents;
     Context mContext;
     LayoutInflater mInflater;
+    Integer selectedPosition;
 
     public StudentListAdapter(ArrayList<Student> students, Context context) {
         mStudents = students;

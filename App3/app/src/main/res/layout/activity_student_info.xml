@@ -67,7 +67,7 @@
                 android:text="дисциплина" />
 
             <EditText
-                android:id="@+id/editASI_SubjectName"
+                android:id="@+id/editDialog_subjectName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -85,7 +85,7 @@
                 android:text="оценка" />
 
             <Spinner
-                android:id="@+id/sASI_mark"
+                android:id="@+id/sDialog_mark"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="5"

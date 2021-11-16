@@ -2,6 +2,16 @@ package com.example.mylists;
 
 //фио студентов и тд
 
+/*
+Новый проект
+открывается список студентов
+выбранный студент подсвечивает
+в меню добавить удалить изменить студента
+проверка ввода
+по нажатию открываются предметы
+меню аналогично студента
+ */
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -11,7 +21,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,6 +35,9 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -66,6 +81,22 @@ public class MainActivity extends AppCompatActivity {
         ((LinearLayout) findViewById(R.id.llInput)).setVisibility(
                 ((Button) findViewById(R.id.bAddStudent)).getVisibility()
         );
+
+        mStudents = new ArrayList<>();
+
+        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
+        int size = sPref.getInt("count", 0);
+        if (size>0){
+            Gson gson = (new GsonBuilder()).create();
+            for (int i=0;i<size;++i){
+                String s = sPref.getString("student"+i, "");
+                if(!s.equals("")){
+                    Student st = gson.fromJson(s, Student.class);
+                    mStudents.add(st);
+                }
+            }
+        }
+        createStudentList(null);
 
         mIntentActivityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -113,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     StudentListAdapter mStudentListAdapter;
 
     public void createStudentList(View view) {
-        mStudents=new ArrayList<>();
+        //mStudents=new ArrayList<>();
         ListView listView = findViewById(R.id.lvList2);
         mStudentListAdapter=new StudentListAdapter(mStudents,this);
         listView.setAdapter(mStudentListAdapter);
@@ -154,6 +185,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addStudent(View view) {
+
+        if (TextUtils.isEmpty(((EditText) findViewById(R.id.editFIO)).getText().toString())){
+            ((EditText) findViewById(R.id.editFIO)).setError("Не Указанно ФИО");
+            return;
+        }
+
         mStudents.add(new Student(
                 ((EditText) findViewById(R.id.editFIO)).getText().toString(),
                 ((EditText) findViewById(R.id.editFaculty)).getText().toString(),
@@ -163,5 +200,20 @@ public class MainActivity extends AppCompatActivity {
         //((EditText) findViewById(R.id.editFaculty)).setText("");
         //((EditText) findViewById(R.id.editGroup)).setText("");
         mStudentListAdapter.notifyDataSetChanged();
+    }
+
+    protected void onDestroy(){
+        if(mStudents!=null) {
+            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.create();
+            ed.putInt("count", mStudents.size());
+            for (int i=0;i<mStudents.size();++i){
+                String s = gson.toJson(mStudents.get(i));
+                ed.putString("student"+i, s);
+            }
+            ed.commit();
+        }
+        super.onDestroy();
     }
 }

@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
@@ -99,12 +100,35 @@ public class StudentInfoActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
-    public void addSubject(View view) {
+    /*public void addSubject(View view) {
         s.addSubject(new Subject(
-                ((EditText) findViewById(R.id.editASI_SubjectName)).getText().toString(),
-                Integer.parseInt(((Spinner) findViewById(R.id.sASI_mark)).getSelectedItem().toString())
+                ((EditText) findViewById(R.id.editDialog_subjectName)).getText().toString(),
+                Integer.parseInt(((Spinner) findViewById(R.id.sDialog_mark)).getSelectedItem().toString())
         ));
         mSubjectListAdapter.notifyDataSetChanged();
+    }*/
+
+    public void addSubject(View view) {
+        AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
+        inputDialog.setTitle("Инофрмация о дисциплине");
+        inputDialog.setCancelable(false);
+        View vv = (LinearLayout) getLayoutInflater().inflate(R.layout.subject_input, null);
+        inputDialog.setView(vv);
+        final EditText mName = vv.findViewById(R.id.editDialog_subjectName);
+        final Spinner mMark = vv.findViewById(R.id.sDialog_mark);
+
+        inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                s.addSubject(new Subject(
+                        mName.getText().toString(),
+                        Integer.parseInt(mMark.getSelectedItem().toString())
+                ));
+                mSubjectListAdapter.notifyDataSetChanged();
+            }
+        })
+                .setNegativeButton("Отмена", null);
+        inputDialog.show();
     }
 
     public void clSave(View view) {
