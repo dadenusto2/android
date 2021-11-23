@@ -25,7 +25,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,7 +33,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,9 +50,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         mMenu = menu;
-        if(mStudents.size()==0){
+        if(mStudents.size() == 0 || mPosition==-1){
             mMenu.findItem(R.id.stChange).setVisible(false);
             mMenu.findItem(R.id.stDelete).setVisible(false);
+            mMenu.findItem(R.id.stAddSb).setVisible(false);
         }
         return true;
     }
@@ -70,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
                 infoDialog.setPositiveButton("Прочитано", null);
                 infoDialog.show();
                 return true;
-
             }
             case R.id.stAdd:{
                 addStudent("", "", "");
@@ -88,6 +86,10 @@ public class MainActivity extends AppCompatActivity {
                 finish();
                 return true;
             }
+            case R.id.stAddSb:{
+                addSubject();
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -100,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         ((LinearLayout) findViewById(R.id.llInput)).setVisibility(
                 ((Button) findViewById(R.id.bAddStudent)).getVisibility()
         );
-
+        mPosition = -1;
         mStudents = new ArrayList<>();
 
         SharedPreferences sPref = getPreferences(MODE_PRIVATE);
@@ -146,43 +148,21 @@ public class MainActivity extends AppCompatActivity {
         ((Button) findViewById(R.id.bAddStudent)).setVisibility(View.VISIBLE);
         ((Button) findViewById(R.id.bCreateStudentList)).setVisibility(View.GONE);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        AdapterView.OnItemLongClickListener clLStudent = new AdapterView.OnItemLongClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mStudentListAdapter.colorFaculty(position, parent);
-            }
-        });
-
-        AdapterView.OnItemClickListener clStudent = new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
-//
-//                intent.putExtra("fio", mStudents.get(position).getFIO());
-//                intent.putExtra("faculty", mStudents.get(position).getFaculty());
-//                intent.putExtra("group", mStudents.get(position).getGroup());
-//
-//                Bundle bundle = new Bundle();
-//                bundle.putString("fio", mStudents.get(position).getFIO());
-//                bundle.putString("faculty", mStudents.get(position).getFaculty());
-//                bundle.putString("group", mStudents.get(position).getGroup());
-//
-//                intent.putExtras(bundle);
-                intent.putExtra("student", mStudents.get(position));
-                mPosition=position;
-                System.out.println(mPosition);
-                for (int i = 0; i< listView.getCount();i++) {
-                    if (i == position) {
-                        listView.getChildAt(i).setBackgroundColor(getResources().getColor(R.color.redShadow));
-                    } else {
-                        listView.getChildAt(i).setBackgroundColor(getResources().getColor(R.color.white));
-                    }
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                for (int j = 0; j< listView.getCount();j++) {
+                    listView.getChildAt(j).setBackgroundColor(getResources().getColor(R.color.white));
                 }
-                mIntentActivityResultLauncher.launch(intent);
+                mMenu.findItem(R.id.stChange).setVisible(false);
+                mMenu.findItem(R.id.stDelete).setVisible(false);
+                mMenu.findItem(R.id.stAddSb).setVisible(false);
+                return false;
             }
         };
-        listView.setOnItemClickListener(clStudent);
+        listView.setOnItemLongClickListener(clLStudent);
     }
+
 
     public void changeStudent(int position) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
@@ -202,12 +182,27 @@ public class MainActivity extends AppCompatActivity {
         inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                mStudents.set(position, new Student(
-                        mFIO.getText().toString(),
-                        mFacultet.getText().toString(),
-                        mGroup.getText().toString()
-                ));
-                mStudentListAdapter.notifyDataSetChanged();
+                if (mFIO.getText().toString().isEmpty() || mFacultet.getText().toString().isEmpty()|| mGroup.getText().toString().isEmpty()){
+                    AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                    alertDialog.setTitle("Ошибка ввода");
+                    alertDialog.setMessage("Введены не все данные!");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    addStudent(mFIO.getText().toString(), mFacultet.getText().toString(), mGroup.getText().toString());
+                                }
+                            });
+                    alertDialog.show();
+                }
+                else {
+                    mStudents.set(position, new Student(
+                            mFIO.getText().toString(),
+                            mFacultet.getText().toString(),
+                            mGroup.getText().toString()
+                    ));
+                    mStudentListAdapter.notifyDataSetChanged();
+                }
             }
     })
                 .setNegativeButton("Отмена", null);
@@ -248,8 +243,10 @@ public class MainActivity extends AppCompatActivity {
                             mFacultet.getText().toString(),
                             mGroup.getText().toString()
                     ));
-                    mMenu.findItem(R.id.stChange).setVisible(true);
-                    mMenu.findItem(R.id.stDelete).setVisible(true);
+                    mPosition = -1;
+                    mMenu.findItem(R.id.stChange).setVisible(false);
+                    mMenu.findItem(R.id.stDelete).setVisible(false);
+                    mMenu.findItem(R.id.stAddSb).setVisible(false);
                     mStudentListAdapter.notifyDataSetChanged();
                 }
             }
@@ -271,11 +268,24 @@ public class MainActivity extends AppCompatActivity {
                     mMenu.findItem(R.id.stChange).setVisible(false);
                     mMenu.findItem(R.id.stDelete).setVisible(false);
                 }
+                mPosition = -1;
+                mMenu.findItem(R.id.stChange).setVisible(false);
+                mMenu.findItem(R.id.stDelete).setVisible(false);
+                mMenu.findItem(R.id.stAddSb).setVisible(false);
                 mStudentListAdapter.notifyDataSetChanged();
             }
         })
                 .setNegativeButton("Нет", null);
         inputDialog.show();
+
+    }
+
+    public void addSubject(){
+        Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
+        intent.putExtra("student", mStudents.get(mPosition));
+        mMenu.findItem(R.id.stChange).setVisible(true);
+        mMenu.findItem(R.id.stDelete).setVisible(true);
+        mIntentActivityResultLauncher.launch(intent);
 
     }
 

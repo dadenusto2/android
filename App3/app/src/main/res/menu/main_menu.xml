@@ -16,4 +16,7 @@
     <item
         android:id="@+id/miExit"
         android:title="Выход" />
+    <item
+        android:id="@+id/stAddSb"
+        android:title="Добавить студента" />
 </menu>
