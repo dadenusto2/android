@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         if(mStudents.size() == 0 || mPosition==-1){
             mMenu.findItem(R.id.stChange).setVisible(false);
             mMenu.findItem(R.id.stDelete).setVisible(false);
-            mMenu.findItem(R.id.stAddSb).setVisible(false);
         }
         return true;
     }
@@ -84,10 +83,6 @@ public class MainActivity extends AppCompatActivity {
             }
             case R.id.miExit:{
                 finish();
-                return true;
-            }
-            case R.id.stAddSb:{
-                addSubject();
                 return true;
             }
         }
@@ -127,9 +122,18 @@ public class MainActivity extends AppCompatActivity {
                         if(result.getResultCode() == Activity.RESULT_OK) {
                             Intent intent = result.getData();
                             Student s = intent.getParcelableExtra("student");
-                            mStudents.set(mPosition, s);
-                            Toast.makeText(getApplicationContext(),
-                                    "Студент: " + s.toString() + "\nУспешно сохранён", Toast.LENGTH_SHORT).show();
+                            System.out.println(s);
+                            System.out.println(s.getSubjects().size());
+                            if (mPosition == -1) {
+                                mStudents.add(s);
+                                mPosition = mStudents.size()-1;
+                            }
+                            else {
+                                mStudents.set(mPosition, s);
+                            }
+                            mMenu.findItem(R.id.stChange).setVisible(false);
+                            mMenu.findItem(R.id.stDelete).setVisible(false);
+                            mStudentListAdapter.notifyDataSetChanged();
                         }
                     }
                 }
@@ -154,18 +158,32 @@ public class MainActivity extends AppCompatActivity {
                 for (int j = 0; j< listView.getCount();j++) {
                     listView.getChildAt(j).setBackgroundColor(getResources().getColor(R.color.white));
                 }
+                mPosition = -1;
                 mMenu.findItem(R.id.stChange).setVisible(false);
                 mMenu.findItem(R.id.stDelete).setVisible(false);
-                mMenu.findItem(R.id.stAddSb).setVisible(false);
-                return false;
+                return true;
+            }
+        };
+        AdapterView.OnItemClickListener clStudent = new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                for (int j = 0; j < listView.getCount(); j++) {
+                    if (j == i)
+                        listView.getChildAt(j).setBackgroundColor(getResources().getColor(R.color.odd_element));
+                    else
+                        listView.getChildAt(j).setBackgroundColor(getResources().getColor(R.color.white));
+                }
+                mPosition = i;
+                mMenu.findItem(R.id.stChange).setVisible(true);
+                mMenu.findItem(R.id.stDelete).setVisible(true);
             }
         };
         listView.setOnItemLongClickListener(clLStudent);
+        listView.setOnItemClickListener(clStudent);
     }
 
-
     public void changeStudent(int position) {
-        AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
+        /*AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
         inputDialog.setTitle("Добавить студента");
         inputDialog.setCancelable(false);
         View vv = (LinearLayout) getLayoutInflater().inflate(R.layout.student_input, null);
@@ -178,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
         mFIO.setText(s.getFIO(), TextView.BufferType.EDITABLE);
         mFacultet.setText(s.getFaculty(), TextView.BufferType.EDITABLE);
         mGroup.setText(s.getGroup(), TextView.BufferType.EDITABLE);
+
 
         inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
             @Override
@@ -203,14 +222,20 @@ public class MainActivity extends AppCompatActivity {
                     ));
                     mStudentListAdapter.notifyDataSetChanged();
                 }
+
             }
     })
                 .setNegativeButton("Отмена", null);
-        inputDialog.show();
+        inputDialog.show();*/
+        Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
+        intent.putExtra("student", mStudents.get(mPosition));
+        mMenu.findItem(R.id.stChange).setVisible(true);
+        mMenu.findItem(R.id.stDelete).setVisible(true);
+        mIntentActivityResultLauncher.launch(intent);
     }
 
     public void addStudent(String fio, String facultet, String group) {
-        AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
+        /*AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
         inputDialog.setTitle("Добавить студента");
         inputDialog.setCancelable(false);
         View vv = (LinearLayout) getLayoutInflater().inflate(R.layout.student_input, null);
@@ -246,13 +271,18 @@ public class MainActivity extends AppCompatActivity {
                     mPosition = -1;
                     mMenu.findItem(R.id.stChange).setVisible(false);
                     mMenu.findItem(R.id.stDelete).setVisible(false);
-                    mMenu.findItem(R.id.stAddSb).setVisible(false);
                     mStudentListAdapter.notifyDataSetChanged();
                 }
             }
         })
                 .setNegativeButton("Отмена", null);
-        inputDialog.show();
+        inputDialog.show();*/
+        Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
+        mPosition = -1;
+        intent.putExtra("student", new Student("", "", ""));
+        mMenu.findItem(R.id.stChange).setVisible(true);
+        mMenu.findItem(R.id.stDelete).setVisible(true);
+        mIntentActivityResultLauncher.launch(intent);
     }
 
     public void deleteStudent(int position) {
@@ -271,7 +301,6 @@ public class MainActivity extends AppCompatActivity {
                 mPosition = -1;
                 mMenu.findItem(R.id.stChange).setVisible(false);
                 mMenu.findItem(R.id.stDelete).setVisible(false);
-                mMenu.findItem(R.id.stAddSb).setVisible(false);
                 mStudentListAdapter.notifyDataSetChanged();
             }
         })
@@ -280,14 +309,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void addSubject(){
-        Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
-        intent.putExtra("student", mStudents.get(mPosition));
-        mMenu.findItem(R.id.stChange).setVisible(true);
-        mMenu.findItem(R.id.stDelete).setVisible(true);
-        mIntentActivityResultLauncher.launch(intent);
-
-    }
+//    public void addSubject(){
+//        Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
+//        intent.putExtra("student", mStudents.get(mPosition));
+//        mMenu.findItem(R.id.stChange).setVisible(true);
+//        mMenu.findItem(R.id.stDelete).setVisible(true);
+//        mIntentActivityResultLauncher.launch(intent);
+//    }
 
     protected void onDestroy(){
         if(mStudents!=null) {
