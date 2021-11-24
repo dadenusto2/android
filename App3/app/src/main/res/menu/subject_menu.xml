@@ -12,5 +12,6 @@
         android:title="Удалить оценку" />
     <item
         android:id="@+id/back"
-        android:title="Назад" />
+        android:title="Назад"
+        android:visible="false" />
 </menu>

@@ -48,11 +48,11 @@ public class StudentInfoActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()) {
             case R.id.addSb:{
-                addSubject();
+                addSubject(true);
                 return true;
             }
             case R.id.changeSb:{
-                changeSubject(mPosition);
+                changeSubject(mPosition, true);
                 return true;
             }
             case R.id.deleteSb:{
@@ -60,7 +60,7 @@ public class StudentInfoActivity extends AppCompatActivity {
                 return true;
             }
             case R.id.back:{
-                onBackPassed();
+                onBackPressed();
                 return true;
             }
         }
@@ -201,7 +201,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         mSubjectListAdapter.notifyDataSetChanged();
     }*/
 
-    public void addSubject() {
+    public void addSubject(boolean b) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
         inputDialog.setTitle("Добавление оценки");
         inputDialog.setCancelable(false);
@@ -209,7 +209,8 @@ public class StudentInfoActivity extends AppCompatActivity {
         inputDialog.setView(vv);
         final EditText mName = vv.findViewById(R.id.editDialog_subjectName);
         final Spinner mMark = vv.findViewById(R.id.sDialog_mark);
-
+        if (!b)
+            mName.setError("Не введино название");
         inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -223,16 +224,17 @@ public class StudentInfoActivity extends AppCompatActivity {
                     mSubjectListAdapter.notifyDataSetChanged();
                 }
                 else {
-                    AlertDialog alertDialog = new AlertDialog.Builder(StudentInfoActivity.this).create();
-                    alertDialog.setTitle("Ошибка ввода");
-                    alertDialog.setMessage("Название оценки не ввидено!");
-                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
-                    alertDialog.show();
+//                    AlertDialog alertDialog = new AlertDialog.Builder(StudentInfoActivity.this).create();
+//                    alertDialog.setTitle("Ошибка ввода");
+//                    alertDialog.setMessage("Название оценки не ввидено!");
+//                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+//                            new DialogInterface.OnClickListener() {
+//                                public void onClick(DialogInterface dialog, int which) {
+//                                    dialog.dismiss();
+//                                }
+//                            });
+//                    alertDialog.show();
+                        addSubject(false);
                 }
             }
         })
@@ -249,7 +251,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         return 0;
     }
 
-    public void changeSubject(int position) {
+    public void changeSubject(int position, boolean b) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
         inputDialog.setTitle("Изменение оценки");
         inputDialog.setCancelable(false);
@@ -259,6 +261,8 @@ public class StudentInfoActivity extends AppCompatActivity {
         final Spinner mMark = vv.findViewById(R.id.sDialog_mark);
         mName.setText(s.getSubjects().get(position).getName());
         mMark.setSelection(getIndex(mMark, s.getSubjects().get(position).getMark()));
+        if (!b)
+            mName.setError("Не введино название");
         inputDialog.setPositiveButton("Изменить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -282,6 +286,7 @@ public class StudentInfoActivity extends AppCompatActivity {
                                 }
                             });
                     alertDialog.show();
+                    changeSubject(position, false);
                 }
             }
 
@@ -314,16 +319,15 @@ public class StudentInfoActivity extends AppCompatActivity {
         if (((EditText) findViewById(R.id.etASI_FIO)).getText().toString().isEmpty()||
             ((EditText) findViewById(R.id.etASI_Faculty)).getText().toString().isEmpty()||
             ((EditText) findViewById(R.id.etASI_Group)).getText().toString().isEmpty()){
-            AlertDialog alertDialog = new AlertDialog.Builder(StudentInfoActivity.this).create();
-            alertDialog.setTitle("Ошибка ввода");
-            alertDialog.setMessage("Введены не все поля студента!");
-            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            alertDialog.show();
+            EditText mFIO = findViewById(R.id.etASI_FIO);
+            EditText mFaculty = findViewById(R.id.etASI_Faculty);
+            EditText mGroup = findViewById(R.id.etASI_Group);
+            if (((EditText) findViewById(R.id.etASI_FIO)).getText().toString().isEmpty())
+                mFIO.setError("Не введино ФИО");
+            if (((EditText) findViewById(R.id.etASI_Faculty)).getText().toString().isEmpty())
+                mFaculty.setError("Не введин факультет");
+            if (((EditText) findViewById(R.id.etASI_Group)).getText().toString().isEmpty())
+                mGroup.setError("Не введина группа");
         }
         else{
             SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
@@ -353,7 +357,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         finish();
     }
 
-    public void onBackPassed() {
+    public void onBackPressed() {
         AlertDialog.Builder quitDialog = new AlertDialog.Builder(this);
         quitDialog.setTitle("Сохранить изменения?");
         quitDialog.setPositiveButton("Да", new DialogInterface.OnClickListener() {
