@@ -3,6 +3,7 @@ package com.example.it2_handle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,6 +11,8 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.Checkable;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -47,6 +50,29 @@ public class MainActivity extends AppCompatActivity {
         public boolean handleMessage(@NonNull Message msg) {
             Log.d(LOG_TAG, "what = "+ msg.what);
             return false;
+        }
+    };
+
+    CheckBox chbInfo;
+    int cnt;
+    final int max = 500;
+    Handler handler;
+    ProgressBar pbCount;
+
+    Runnable updateProgress = new Runnable() {
+        @Override
+        public void run() {
+            pbCount.setProgress(cnt);
+        }
+    };
+
+    Runnable showInfo = new Runnable() {
+        @SuppressLint("SetTextI18n")
+        @Override
+        public void run() {
+            Log.d(LOG_TAG, "showInfo");
+            tvInfo.setText("Count = "+ cnt);
+            handler.postDelayed(showInfo, 1000);
         }
     };
 
@@ -131,6 +157,35 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+
+        handler = new Handler();
+        pbCount = (ProgressBar) findViewById(R.id.pbCount);
+        pbCount.setMax(max);
+        pbCount.setProgress(0);
+        chbInfo = (CheckBox) findViewById(R.id.chbInfo);
+        chbInfo.setOnCheckedChangeListener((buttonView, isChecked)-> {
+            if(isChecked){
+                tvInfo.setVisibility(View.VISIBLE);
+                handler.post(showInfo);
+            } else {
+                tvInfo.setVisibility(View.GONE);
+                handler.removeCallbacks(showInfo);
+            }
+        });
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    for(cnt = 1; cnt<max;cnt++){
+                        TimeUnit.MILLISECONDS.sleep(500);
+                        handler.post(updateProgress);
+                    }
+                } catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
     }
 
     byte[] downloadOtherFile() throws InterruptedException {
@@ -253,4 +308,40 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    public void btnCheckClick(View view){
+        tvInfo.setVisibility(View.VISIBLE);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    TimeUnit.SECONDS.sleep(2);
+                    runOnUiThread(runn1);
+                    TimeUnit.SECONDS.sleep(1);
+                    tvInfo.postDelayed(runn3, 2000);
+                    tvInfo.post(runn2);
+                } catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
+    }
+    Runnable runn1 = new Runnable() {
+        @Override
+        public void run() {
+            tvInfo.setText("runn1");
+        }
+    };
+    Runnable runn2 = new Runnable() {
+        @Override
+        public void run() {
+            tvInfo.setText("runn2");
+        }
+    };    Runnable runn3 = new Runnable() {
+        @Override
+        public void run() {
+            tvInfo.setText("runn3");
+        }
+    };
+
 }
