@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         ((Button) findViewById(R.id.btn1)).setOnClickListener(v->{
             MyTask mt = new MyTask();
             mt.execute();
-       });
+        });
         ((Button) findViewById(R.id.btn2)).setOnClickListener(v->{
             MyTask2 mt = new MyTask2();
             mt.execute("file_path_1", "file_path_2", "file_path_3", "file_path_4");

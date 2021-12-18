@@ -4,15 +4,34 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Subject implements Parcelable {
+    Integer mID;
+    Integer mIDStudent;
     String mName;
     Integer mMark;
 
-    public Subject(String name, Integer mark) {
+    public Integer getID() {
+        return mID;
+    }
+
+    public Integer getIDStudent() {
+        return mIDStudent;
+    }
+
+    public Subject(Integer Id, Integer IDStudent,String name, Integer mark) {
+        mID = Id;
+        mIDStudent = IDStudent;
+        mName = name;
+        mMark = mark;
+    }
+
+    public Subject(Integer IDStudent,String name, Integer mark) {
+        mIDStudent = IDStudent;
         mName = name;
         mMark = mark;
     }
 
     protected Subject(Parcel in) {
+        mIDStudent = in.readInt();
         mName = in.readString();
         if (in.readByte() == 0) {
             mMark = null;

@@ -6,12 +6,14 @@ import android.os.Parcelable;
 import java.util.ArrayList;
 
 public class Student implements Parcelable {
+    private int mID;
     private String mFIO;
     private String mFaculty;
     private String mGroup;
     private ArrayList<Subject> mSubjects;
 
-    public Student(String FIO, String faculty, String group) {
+    public Student(int ID, String FIO, String faculty, String group) {
+        mID= ID;
         mFIO = FIO;
         mFaculty = faculty;
         mGroup = group;
@@ -19,6 +21,7 @@ public class Student implements Parcelable {
     }
 
     protected Student(Parcel in) {
+        mID= in.readInt();
         mFIO = in.readString();
         mFaculty = in.readString();
         mGroup = in.readString();
@@ -27,6 +30,7 @@ public class Student implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mID);
         dest.writeString(mFIO);
         dest.writeString(mFaculty);
         dest.writeString(mGroup);
@@ -49,6 +53,9 @@ public class Student implements Parcelable {
             return new Student[size];
         }
     };
+    public int getID() {
+        return mID;
+    }
 
     public String getFIO() {
         return mFIO;
@@ -90,6 +97,7 @@ public class Student implements Parcelable {
     @Override
     public String toString() {
         return "Student{" +
+                "mID='" + mID + '\'' +
                 "mFIO='" + mFIO + '\'' +
                 ", mFaculty='" + mFaculty + '\'' +
                 ", mGroup='" + mGroup + '\'' +

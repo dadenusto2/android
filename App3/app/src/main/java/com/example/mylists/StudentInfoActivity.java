@@ -8,8 +8,11 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,7 +35,10 @@ public class StudentInfoActivity extends AppCompatActivity {
     private Student s;
     private Menu mMenu;
     private ActivityResultLauncher<Intent> mIntentActivityResultLauncher;
-
+    private dbHelperSubject dbHelperSubject;
+    private SQLiteDatabase db;
+    private Cursor userCursor;
+    private static final String TAG = "App3";
 
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.subject_menu, menu);
@@ -83,19 +89,17 @@ public class StudentInfoActivity extends AppCompatActivity {
         mPosition = -1;
         SharedPreferences sPref = getPreferences(MODE_PRIVATE);
         int size = sPref.getInt("count", 0);
-        String st = s.getFIO();
-        if (size > 0) {
-            Gson gson = (new GsonBuilder()).create();
-            for (int i = 0; i < size; ++i) {
-                String str = sPref.getString(st + "_subject" + i, "");
-                if (!s.equals("")) {
-                    Subject sb = gson.fromJson(str, Subject.class);
-                    mSubjects.add(sb);
-                }
-            }
+//        String st = s.getFIO();
+        dbHelperSubject = new dbHelperSubject(getApplicationContext());
+        db = dbHelperSubject.getReadableDatabase();
+        userCursor = db.rawQuery("select * from "+ dbHelperSubject.TABLE, null);
+//            Gson gson = (new GsonBuilder()).create();
+        while (userCursor.moveToNext()) {
+            Subject sb = new Subject(userCursor.getInt(0), userCursor.getInt(1),userCursor.getString(2), userCursor.getInt(3));
+            Log.d(TAG, sb.toString());
+            s.addSubject(sb);
         }
         createSubjectList(null);
-
 //        ((ListView) findViewById(R.id.lvASI_Subjects)).setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 //            @Override
 //            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -125,12 +129,9 @@ public class StudentInfoActivity extends AppCompatActivity {
 //                showPopupMenu(view, i);
 //            }
 //        });
-
     }
-
     ArrayList<Subject> mSubjects;
     SubjectListAdapter mSubjectListAdapter;
-
 
     public void createSubjectList(View view) {
         ListView listView = findViewById(R.id.lvASI_Subjects);
@@ -193,14 +194,6 @@ public class StudentInfoActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
-    /*public void addSubject(View view) {
-        s.addSubject(new Subject(
-                ((EditText) findViewById(R.id.editDialog_subjectName)).getText().toString(),
-                Integer.parseInt(((Spinner) findViewById(R.id.sDialog_mark)).getSelectedItem().toString())
-        ));
-        mSubjectListAdapter.notifyDataSetChanged();
-    }*/
-
     public void addSubject(boolean b) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
         inputDialog.setTitle("Добавление оценки");
@@ -216,6 +209,7 @@ public class StudentInfoActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialogInterface, int i) {
                 if (!mName.getText().toString().isEmpty()) {
                     s.addSubject(new Subject(
+                            s.getID(),
                             mName.getText().toString(),
                             Integer.parseInt(mMark.getSelectedItem().toString())
                     ));
@@ -224,17 +218,7 @@ public class StudentInfoActivity extends AppCompatActivity {
                     mSubjectListAdapter.notifyDataSetChanged();
                 }
                 else {
-//                    AlertDialog alertDialog = new AlertDialog.Builder(StudentInfoActivity.this).create();
-//                    alertDialog.setTitle("Ошибка ввода");
-//                    alertDialog.setMessage("Название оценки не ввидено!");
-//                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-//                            new DialogInterface.OnClickListener() {
-//                                public void onClick(DialogInterface dialog, int which) {
-//                                    dialog.dismiss();
-//                                }
-//                            });
-//                    alertDialog.show();
-                        addSubject(false);
+                    addSubject(false);
                 }
             }
         })
@@ -259,6 +243,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         inputDialog.setView(vv);
         final EditText mName = vv.findViewById(R.id.editDialog_subjectName);
         final Spinner mMark = vv.findViewById(R.id.sDialog_mark);
+        Integer mID = s.getSubjects().get(position).getID();
         mName.setText(s.getSubjects().get(position).getName());
         mMark.setSelection(getIndex(mMark, s.getSubjects().get(position).getMark()));
         if (!b)
@@ -268,6 +253,8 @@ public class StudentInfoActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialogInterface, int i) {
                 if (!mName.getText().toString().isEmpty()) {
                     s.getSubjects().set(mPosition, new Subject(
+                            mID,
+                            s.getID(),
                             mName.getText().toString(),
                             Integer.parseInt(mMark.getSelectedItem().toString())
                     ));
@@ -303,6 +290,11 @@ public class StudentInfoActivity extends AppCompatActivity {
         inputDialog.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                db.delete(dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(position)});
+                Subject sb = s.getSubjects().get(position);
+                if (sb.getID()!=null){
+                    db.delete(dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(sb.getID())});
+                }
                 s.getSubjects().remove(position);
                 if(s.getSubjects().size()==0){
                     mMenu.findItem(R.id.changeSb).setVisible(false);
@@ -330,22 +322,34 @@ public class StudentInfoActivity extends AppCompatActivity {
                 mGroup.setError("Не введина группа");
         }
         else{
-            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
-            GsonBuilder builder = new GsonBuilder();
-            Gson gson = builder.create();
+//            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
+//            GsonBuilder builder = new GsonBuilder();
+//            Gson gson = builder.create();
             Student newS = new Student(
+                    s.getID(),
                     ((EditText) findViewById(R.id.etASI_FIO)).getText().toString(),
                     ((EditText) findViewById(R.id.etASI_Faculty)).getText().toString(),
                     ((EditText) findViewById(R.id.etASI_Group)).getText().toString()
             );
-            ed.putInt("count", s.getSubjects().size());
-            String st = newS.getFIO();
+//            ed.putInt("count", s.getSubjects().size());
+//            String st = newS.getFIO();
+//            for (int i = 0; i < s.getSubjects().size(); ++i) {
+//                newS.addSubject(s.getSubjects().get(i));
+//                String sb = gson.toJson(s.getSubjects().get(i));
+//                ed.putString(st + "_subject" + i, sb);
+//            }
+//            ed.commit();
             for (int i = 0; i < s.getSubjects().size(); ++i) {
-                newS.addSubject(s.getSubjects().get(i));
-                String sb = gson.toJson(s.getSubjects().get(i));
-                ed.putString(st + "_subject" + i, sb);
+                Subject sb = s.getSubjects().get(i);
+                Log.d(TAG, sb.getName());
+//                db.execSQL("insert or replace into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
+                if(sb.getID()==null){
+                    db.execSQL("insert into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
+                }
+                else{
+                    db.execSQL("replace into subjects (id, id_student, Name, mark) values ('" +sb.getID()+"', '"  + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
+                }
             }
-            ed.commit();
             Intent intent = new Intent();
             intent.putExtra("student", newS);
             setResult(RESULT_OK, intent);
@@ -377,6 +381,5 @@ public class StudentInfoActivity extends AppCompatActivity {
 
     protected void onDestroy() {
         super.onDestroy();
-
     }
 }

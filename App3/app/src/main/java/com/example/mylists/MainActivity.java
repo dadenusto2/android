@@ -21,30 +21,33 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "App3";
     private int mPosition;
     private Menu mMenu;
     private ActivityResultLauncher<Intent> mIntentActivityResultLauncher;
+    private dbHelperStudent dbHelperStudent;
+    private SQLiteDatabase db;
+    private Cursor userCursor;
+    private Integer userId=0;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -99,18 +102,25 @@ public class MainActivity extends AppCompatActivity {
         );
         mPosition = -1;
         mStudents = new ArrayList<>();
-
-        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
-        int size = sPref.getInt("count", 0);
-        if (size>0){
-            Gson gson = (new GsonBuilder()).create();
-            for (int i=0;i<size;++i){
-                String s = sPref.getString("student"+i, "");
-                if(!s.equals("")){
-                    Student st = gson.fromJson(s, Student.class);
-                    mStudents.add(st);
-                }
-            }
+        dbHelperStudent = new dbHelperStudent(getApplicationContext());
+        db = dbHelperStudent.getReadableDatabase();
+        userCursor =  db.rawQuery("select * from "+ dbHelperStudent.TABLE, null);
+//        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
+//        int size = sPref.getInt("count", 0);
+//        if (size>0){
+//            Gson gson = (new GsonBuilder()).create();
+//            for (int i=0;i<size;++i){
+//                String s = sPref.getString("student"+i, "");
+//                if(!s.equals("")){
+//                    Student st = gson.fromJson(s, Student.class);
+//                    mStudents.add(st);
+//                }
+//            }
+//        }
+        while(userCursor.moveToNext()) {
+            userId=userCursor.getInt(0);
+            Student st = new Student(userCursor.getInt(0), userCursor.getString(1), userCursor.getString(2), userCursor.getString(3));
+            mStudents.add(st);
         }
         createStudentList(null);
 
@@ -183,51 +193,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void changeStudent(int position) {
-        /*AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
-        inputDialog.setTitle("Добавить студента");
-        inputDialog.setCancelable(false);
-        View vv = (LinearLayout) getLayoutInflater().inflate(R.layout.student_input, null);
-        inputDialog.setView(vv);
-        Student s = mStudents.get(position);
-
-        final EditText mFIO = vv.findViewById(R.id.editDialog_FIO);
-        final EditText mFacultet = vv.findViewById(R.id.editDialog_Facultet);
-        final EditText mGroup= vv.findViewById(R.id.editDialog_Group);
-        mFIO.setText(s.getFIO(), TextView.BufferType.EDITABLE);
-        mFacultet.setText(s.getFaculty(), TextView.BufferType.EDITABLE);
-        mGroup.setText(s.getGroup(), TextView.BufferType.EDITABLE);
-
-
-        inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (mFIO.getText().toString().isEmpty() || mFacultet.getText().toString().isEmpty()|| mGroup.getText().toString().isEmpty()){
-                    AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-                    alertDialog.setTitle("Ошибка ввода");
-                    alertDialog.setMessage("Введены не все данные!");
-                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    addStudent(mFIO.getText().toString(), mFacultet.getText().toString(), mGroup.getText().toString());
-                                }
-                            });
-                    alertDialog.show();
-                }
-                else {
-                    mStudents.set(position, new Student(
-                            mFIO.getText().toString(),
-                            mFacultet.getText().toString(),
-                            mGroup.getText().toString()
-                    ));
-                    mStudentListAdapter.notifyDataSetChanged();
-                }
-
-            }
-    })
-                .setNegativeButton("Отмена", null);
-        inputDialog.show();*/
         Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
+        Log.d(TAG, mStudents.get(mPosition).toString());
         intent.putExtra("student", mStudents.get(mPosition));
         mMenu.findItem(R.id.stChange).setVisible(true);
         mMenu.findItem(R.id.stDelete).setVisible(true);
@@ -235,51 +202,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addStudent(String fio, String facultet, String group) {
-        /*AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
-        inputDialog.setTitle("Добавить студента");
-        inputDialog.setCancelable(false);
-        View vv = (LinearLayout) getLayoutInflater().inflate(R.layout.student_input, null);
-        inputDialog.setView(vv);
-        final EditText mFIO = vv.findViewById(R.id.editDialog_FIO);
-        final EditText mFacultet = vv.findViewById(R.id.editDialog_Facultet);
-        final EditText mGroup= vv.findViewById(R.id.editDialog_Group);
-        mFIO.setText(fio, TextView.BufferType.EDITABLE);
-        mFacultet.setText(facultet, TextView.BufferType.EDITABLE);
-        mGroup.setText(group, TextView.BufferType.EDITABLE);
-        inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (mFIO.getText().toString().isEmpty() || mFacultet.getText().toString().isEmpty()|| mGroup.getText().toString().isEmpty()){
-                    AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-                    alertDialog.setTitle("Ошибка ввода");
-                    alertDialog.setMessage("Введены не все данные!");
-                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    addStudent(mFIO.getText().toString(), mFacultet.getText().toString(), mGroup.getText().toString());
-                                }
-                            });
-                    alertDialog.show();
-                }
-                else {
-                    mStudents.add(new Student(
-                            mFIO.getText().toString(),
-                            mFacultet.getText().toString(),
-                            mGroup.getText().toString()
-                    ));
-                    mPosition = -1;
-                    mMenu.findItem(R.id.stChange).setVisible(false);
-                    mMenu.findItem(R.id.stDelete).setVisible(false);
-                    mStudentListAdapter.notifyDataSetChanged();
-                }
-            }
-        })
-                .setNegativeButton("Отмена", null);
-        inputDialog.show();*/
         Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
         mPosition = -1;
-        intent.putExtra("student", new Student("", "", ""));
+        intent.putExtra("student", new Student(userId+1, "", "", ""));
         mMenu.findItem(R.id.stChange).setVisible(true);
         mMenu.findItem(R.id.stDelete).setVisible(true);
         mIntentActivityResultLauncher.launch(intent);
@@ -309,25 +234,42 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-//    public void addSubject(){
-//        Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
-//        intent.putExtra("student", mStudents.get(mPosition));
-//        mMenu.findItem(R.id.stChange).setVisible(true);
-//        mMenu.findItem(R.id.stDelete).setVisible(true);
-//        mIntentActivityResultLauncher.launch(intent);
-//    }
-
     protected void onDestroy(){
         if(mStudents!=null) {
-            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
-            GsonBuilder builder = new GsonBuilder();
-            Gson gson = builder.create();
-            ed.putInt("count", mStudents.size());
+//            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
+//            GsonBuilder builder = new GsonBuilder();
+//            Gson gson = builder.create();
+//            ed.putInt("count", mStudents.size());
+
+            Log.d(TAG, Integer.toString(userId));
+            Log.d(TAG, Integer.toString(mStudents.size()));
             for (int i=0;i<mStudents.size();++i){
-                String s = gson.toJson(mStudents.get(i));
-                ed.putString("student"+i, s);
+                Student sdb = mStudents.get(i);
+//                String s = gson.toJson(mStudents.get(i));
+//                ed.putString("student"+i, s);
+                ContentValues cv = new ContentValues();
+                cv.put(dbHelperStudent.COLUMN_ID, sdb.getID());
+                cv.put(dbHelperStudent.COLUMN_fio, sdb.getFIO());
+                cv.put(dbHelperStudent.COLUMN_faculty, sdb.getFaculty());
+                cv.put(dbHelperStudent.COLUMN_group, sdb.getGroup());
+                Log.d(TAG, Integer.toString(sdb.getID()));
+
+                try {
+                    if (sdb.getID() <= userId) {
+                        Log.d(TAG, "update");
+                        db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + userId, null);
+                    } else {
+                        Log.d(TAG, "insert");
+                        db.insert(dbHelperStudent.TABLE, null, cv);
+                    }
+//                    db.execSQL("insert or replace into students (ID, FIO, Faculty, grupa) values ("+ sdb.getID() +", '" + sdb.getFIO()+"', '" + sdb.getFaculty()+"', '"+ sdb.getGroup()+ "'); ");
+                }
+                catch (Exception e){
+                    Log.d(TAG, "delete");
+                    db.delete(dbHelperStudent.TABLE, "id = ?", new String[]{String.valueOf(userId)});
+                }
             }
-            ed.commit();
+//            ed.commit();
         }
         super.onDestroy();
     }
