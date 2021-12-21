@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -38,6 +39,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "App3";
@@ -93,20 +95,25 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_ll);
+    class dowloadFromDB extends AsyncTask<Void, Void, Void> {
 
-        ((LinearLayout) findViewById(R.id.llInput)).setVisibility(
-                ((Button) findViewById(R.id.bAddStudent)).getVisibility()
-        );
-        mPosition = -1;
-        mStudents = new ArrayList<>();
-        delStdID = new ArrayList<>();
-        dbHelperStudent = new dbHelperStudent(getApplicationContext());
-        db = dbHelperStudent.getReadableDatabase();
-        userCursor =  db.rawQuery("select * from "+ dbHelperStudent.TABLE, null);
+        /**
+         * Работа в основном потоке, до открытия параллельного
+         */
+        @Override
+        protected void onPreExecute() {
+            Log.d(TAG, "Start download students from db");
+            super.onPreExecute();
+        }
+
+        /**
+         * Открытие и работа параллельного потока
+         */
+        @Override
+        protected Void doInBackground(Void... voids) {
+            dbHelperStudent = new dbHelperStudent(getApplicationContext());
+            db = dbHelperStudent.getReadableDatabase();
+            userCursor =  db.rawQuery("select * from "+ dbHelperStudent.TABLE, null);
 //        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
 //        int size = sPref.getInt("count", 0);
 //        if (size>0){
@@ -119,14 +126,61 @@ public class MainActivity extends AppCompatActivity {
 //                }
 //            }
 //        }
-        while(userCursor.moveToNext()) {
-            userId=userCursor.getInt(0);
-            Student st = new Student(userCursor.getInt(0), userCursor.getString(1), userCursor.getString(2), userCursor.getString(3));
-            mStudents.add(st);
+            while(userCursor.moveToNext()) {
+                userId=userCursor.getInt(0);
+                Log.d(TAG, "Downloaded "+userId+" student!");
+                Student st = new Student(userCursor.getInt(0), userCursor.getString(1), userCursor.getString(2), userCursor.getString(3));
+                mStudents.add(st);
+            }
+            lastID=userId;
+            createStudentList(null);
+            return null;
         }
-        lastID=userId;
-        createStudentList(null);
 
+        /**
+         * После выполеннения потока
+         */
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            Log.d(TAG, "End download students from db");
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main_ll);
+        ((LinearLayout) findViewById(R.id.llInput)).setVisibility(
+                ((Button) findViewById(R.id.bAddStudent)).getVisibility()
+        );
+        mPosition = -1;
+        mStudents = new ArrayList<>();
+        delStdID = new ArrayList<>();
+//        dbHelperStudent = new dbHelperStudent(getApplicationContext());
+//        db = dbHelperStudent.getReadableDatabase();
+//        userCursor =  db.rawQuery("select * from "+ dbHelperStudent.TABLE, null);
+////        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
+////        int size = sPref.getInt("count", 0);
+////        if (size>0){
+////            Gson gson = (new GsonBuilder()).create();
+////            for (int i=0;i<size;++i){
+////                String s = sPref.getString("student"+i, "");
+////                if(!s.equals("")){
+////                    Student st = gson.fromJson(s, Student.class);
+////                    mStudents.add(st);
+////                }
+////            }
+////        }
+//        while(userCursor.moveToNext()) {
+//            userId=userCursor.getInt(0);
+//            Student st = new Student(userCursor.getInt(0), userCursor.getString(1), userCursor.getString(2), userCursor.getString(3));
+//            mStudents.add(st);
+//        }
+//        lastID=userId;
+//        createStudentList(null);
+        dowloadFromDB dfd = new dowloadFromDB();
+        dfd.execute();
         mIntentActivityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 new ActivityResultCallback<ActivityResult>() {
