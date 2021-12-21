@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         );
         mPosition = -1;
         mStudents = new ArrayList<>();
+        delStdID = new ArrayList<>();
         dbHelperStudent = new dbHelperStudent(getApplicationContext());
         db = dbHelperStudent.getReadableDatabase();
         userCursor =  db.rawQuery("select * from "+ dbHelperStudent.TABLE, null);
@@ -153,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     ArrayList<Student> mStudents;
+    ArrayList<Integer> delStdID;
     StudentListAdapter mStudentListAdapter;
 
     public void createStudentList(View view) {
@@ -221,6 +223,9 @@ public class MainActivity extends AppCompatActivity {
         inputDialog.setPositiveButton("Да", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                int id = mStudents.get(position).getID();
+                Log.d(TAG, String.valueOf(id));
+                delStdID.add(id);
                 mStudents.remove(position);
                 if(mStudents.size()==0){
                     mMenu.findItem(R.id.stChange).setVisible(false);
@@ -234,7 +239,6 @@ public class MainActivity extends AppCompatActivity {
         })
                 .setNegativeButton("Нет", null);
         inputDialog.show();
-
     }
 
     protected void onDestroy(){
@@ -256,21 +260,22 @@ public class MainActivity extends AppCompatActivity {
                 cv.put(dbHelperStudent.COLUMN_faculty, sdb.getFaculty());
                 cv.put(dbHelperStudent.COLUMN_group, sdb.getGroup());
                 Log.d(TAG, Integer.toString(sdb.getID()));
-                try {
-                    if (sdb.getID() <= userId) {
-                        Log.d(TAG, "update");
-                        Log.d(TAG, cv.toString());
-                        db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + sdb.getID(), null);
-                    } else {
-                        Log.d(TAG, "insert");
-                        db.insert(dbHelperStudent.TABLE, null, cv);
-                    }
+                if (sdb.getID() <= userId) {
+                    Log.d(TAG, "update");
+                    Log.d(TAG, cv.toString());
+                    db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + sdb.getID(), null);
+                } else if (sdb.getID() > userId){
+                    Log.d(TAG, "insert");
+                    db.insert(dbHelperStudent.TABLE, null, cv);
+                }
+            }
 
-                }
-                catch (Exception e){
-                    Log.d(TAG, "delete");
-                    db.delete(dbHelperStudent.TABLE, "id = ?", new String[]{String.valueOf(userId)});
-                }
+            for (int i=0; i<delStdID.size();i++){
+                Log.d(TAG, "delete");
+                dbHelperSubject dbHelperSubject = new dbHelperSubject(getApplicationContext());
+                SQLiteDatabase dbC = dbHelperSubject.getReadableDatabase();
+                dbC.delete(com.example.mylists.dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
+                db.delete(com.example.mylists.dbHelperStudent.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
             }
 //            ed.commit();
         }
