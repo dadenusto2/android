@@ -96,19 +96,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class dowloadFromDB extends AsyncTask<Void, Void, Void> {
-
-        /**
-         * Работа в основном потоке, до открытия параллельного
-         */
         @Override
         protected void onPreExecute() {
             Log.d(TAG, "Wait to download students from db");
             super.onPreExecute();
         }
-
-        /**
-         * Открытие и работа параллельного потока
-         */
         @Override
         protected Void doInBackground(Void... voids) {
             Log.d(TAG, "Start download students from db");
@@ -137,10 +129,6 @@ public class MainActivity extends AppCompatActivity {
             createStudentList(null);
             return null;
         }
-
-        /**
-         * После выполеннения потока
-         */
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
@@ -149,19 +137,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class saveToDB extends AsyncTask<Void, Void, Void> {
-
-        /**
-         * Работа в основном потоке, до открытия параллельного
-         */
         @Override
         protected void onPreExecute() {
             Log.d(TAG, "Wait to save students to db");
             super.onPreExecute();
         }
-
-        /**
-         * Открытие и работа параллельного потока
-         */
         @Override
         protected Void doInBackground(Void... voids) {
             Log.d(TAG, "Start save students to db");
@@ -195,17 +175,12 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
-
-        /**
-         * После выполеннения потока
-         */
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             Log.d(TAG, "End save students to db");
         }
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
