@@ -213,8 +213,12 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //        lastID=userId;
 //        createStudentList(null);
-        dowloadFromDB dfd = new dowloadFromDB();
-        dfd.execute();
+        try {
+            dowloadFromDB dfd = new dowloadFromDB();
+            dfd.execute();
+        }catch (Exception e){
+
+        }
         mIntentActivityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 new ActivityResultCallback<ActivityResult>() {
