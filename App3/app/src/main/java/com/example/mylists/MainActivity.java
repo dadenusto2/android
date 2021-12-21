@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
          */
         @Override
         protected void onPreExecute() {
-            Log.d(TAG, "Start download students from db");
+            Log.d(TAG, "Wait to download students from db");
             super.onPreExecute();
         }
 
@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
          */
         @Override
         protected Void doInBackground(Void... voids) {
+            Log.d(TAG, "Start download students from db");
             dbHelperStudent = new dbHelperStudent(getApplicationContext());
             db = dbHelperStudent.getReadableDatabase();
             userCursor =  db.rawQuery("select * from "+ dbHelperStudent.TABLE, null);
@@ -144,6 +145,64 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             Log.d(TAG, "End download students from db");
+        }
+    }
+
+    class saveToDB extends AsyncTask<Void, Void, Void> {
+
+        /**
+         * Работа в основном потоке, до открытия параллельного
+         */
+        @Override
+        protected void onPreExecute() {
+            Log.d(TAG, "Wait to save students to db");
+            super.onPreExecute();
+        }
+
+        /**
+         * Открытие и работа параллельного потока
+         */
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Log.d(TAG, "Start save students to db");
+            if(mStudents!=null) {
+                Log.d(TAG, Integer.toString(userId));
+                Log.d(TAG, Integer.toString(mStudents.size()));
+                for (int i=0;i<mStudents.size();++i){
+                    Student sdb = mStudents.get(i);
+                    ContentValues cv = new ContentValues();
+                    cv.put(dbHelperStudent.COLUMN_ID, sdb.getID());
+                    cv.put(dbHelperStudent.COLUMN_fio, sdb.getFIO());
+                    cv.put(dbHelperStudent.COLUMN_faculty, sdb.getFaculty());
+                    cv.put(dbHelperStudent.COLUMN_group, sdb.getGroup());
+                    Log.d(TAG, Integer.toString(sdb.getID()));
+                    if (sdb.getID() <= userId) {
+                        Log.d(TAG, "update");
+                        Log.d(TAG, cv.toString());
+                        db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + sdb.getID(), null);
+                    } else if (sdb.getID() > userId){
+                        Log.d(TAG, "insert");
+                        db.insert(dbHelperStudent.TABLE, null, cv);
+                    }
+                }
+                for (int i=0; i<delStdID.size();i++){
+                    Log.d(TAG, "delete");
+                    dbHelperSubject dbHelperSubject = new dbHelperSubject(getApplicationContext());
+                    SQLiteDatabase dbC = dbHelperSubject.getReadableDatabase();
+                    dbC.delete(com.example.mylists.dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
+                    db.delete(com.example.mylists.dbHelperStudent.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
+                }
+            }
+            return null;
+        }
+
+        /**
+         * После выполеннения потока
+         */
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            Log.d(TAG, "End save students to db");
         }
     }
 
@@ -249,7 +308,6 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemLongClickListener(clLStudent);
         listView.setOnItemClickListener(clStudent);
     }
-
     public void changeStudent(int position) {
         Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
         Log.d(TAG, mStudents.get(mPosition).toString());
@@ -278,7 +336,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 int id = mStudents.get(position).getID();
-                Log.d(TAG, String.valueOf(id));
                 delStdID.add(id);
                 mStudents.remove(position);
                 if(mStudents.size()==0){
@@ -296,43 +353,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void onDestroy(){
-        if(mStudents!=null) {
-//            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
-//            GsonBuilder builder = new GsonBuilder();
-//            Gson gson = builder.create();
-//            ed.putInt("count", mStudents.size());
-
-            Log.d(TAG, Integer.toString(userId));
-            Log.d(TAG, Integer.toString(mStudents.size()));
-            for (int i=0;i<mStudents.size();++i){
-                Student sdb = mStudents.get(i);
-//                String s = gson.toJson(mStudents.get(i));
-//                ed.putString("student"+i, s);
-                ContentValues cv = new ContentValues();
-                cv.put(dbHelperStudent.COLUMN_ID, sdb.getID());
-                cv.put(dbHelperStudent.COLUMN_fio, sdb.getFIO());
-                cv.put(dbHelperStudent.COLUMN_faculty, sdb.getFaculty());
-                cv.put(dbHelperStudent.COLUMN_group, sdb.getGroup());
-                Log.d(TAG, Integer.toString(sdb.getID()));
-                if (sdb.getID() <= userId) {
-                    Log.d(TAG, "update");
-                    Log.d(TAG, cv.toString());
-                    db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + sdb.getID(), null);
-                } else if (sdb.getID() > userId){
-                    Log.d(TAG, "insert");
-                    db.insert(dbHelperStudent.TABLE, null, cv);
-                }
-            }
-
-            for (int i=0; i<delStdID.size();i++){
-                Log.d(TAG, "delete");
-                dbHelperSubject dbHelperSubject = new dbHelperSubject(getApplicationContext());
-                SQLiteDatabase dbC = dbHelperSubject.getReadableDatabase();
-                dbC.delete(com.example.mylists.dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
-                db.delete(com.example.mylists.dbHelperStudent.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
-            }
-//            ed.commit();
-        }
+        saveToDB std = new saveToDB();
+        std.execute();
+//        if(mStudents!=null) {
+////            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
+////            GsonBuilder builder = new GsonBuilder();
+////            Gson gson = builder.create();
+////            ed.putInt("count", mStudents.size());
+//
+//            Log.d(TAG, Integer.toString(userId));
+//            Log.d(TAG, Integer.toString(mStudents.size()));
+//            for (int i=0;i<mStudents.size();++i){
+//                Student sdb = mStudents.get(i);
+////                String s = gson.toJson(mStudents.get(i));
+////                ed.putString("student"+i, s);
+//                ContentValues cv = new ContentValues();
+//                cv.put(dbHelperStudent.COLUMN_ID, sdb.getID());
+//                cv.put(dbHelperStudent.COLUMN_fio, sdb.getFIO());
+//                cv.put(dbHelperStudent.COLUMN_faculty, sdb.getFaculty());
+//                cv.put(dbHelperStudent.COLUMN_group, sdb.getGroup());
+//                Log.d(TAG, Integer.toString(sdb.getID()));
+//                if (sdb.getID() <= userId) {
+//                    Log.d(TAG, "update");
+//                    Log.d(TAG, cv.toString());
+//                    db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + sdb.getID(), null);
+//                } else if (sdb.getID() > userId){
+//                    Log.d(TAG, "insert");
+//                    db.insert(dbHelperStudent.TABLE, null, cv);
+//                }
+//            }
+//
+//            for (int i=0; i<delStdID.size();i++){
+//                Log.d(TAG, "delete");
+//                dbHelperSubject dbHelperSubject = new dbHelperSubject(getApplicationContext());
+//                SQLiteDatabase dbC = dbHelperSubject.getReadableDatabase();
+//                dbC.delete(com.example.mylists.dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
+//                db.delete(com.example.mylists.dbHelperStudent.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
+//            }
+////            ed.commit();
+//        }
         super.onDestroy();
     }
 }
