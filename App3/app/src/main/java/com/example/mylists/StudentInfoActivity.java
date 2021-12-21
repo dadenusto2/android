@@ -95,9 +95,11 @@ public class StudentInfoActivity extends AppCompatActivity {
         userCursor = db.rawQuery("select * from "+ dbHelperSubject.TABLE, null);
 //            Gson gson = (new GsonBuilder()).create();
         while (userCursor.moveToNext()) {
-            Subject sb = new Subject(userCursor.getInt(0), userCursor.getInt(1),userCursor.getString(2), userCursor.getInt(3));
-            Log.d(TAG, sb.toString());
-            s.addSubject(sb);
+            if (userCursor.getInt(1)==s.getID()) {
+                Subject sb = new Subject(userCursor.getInt(0), userCursor.getInt(1), userCursor.getString(2), userCursor.getInt(3));
+                Log.d(TAG, sb.toString());
+                s.addSubject(sb);
+            }
         }
         createSubjectList(null);
 //        ((ListView) findViewById(R.id.lvASI_Subjects)).setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -142,7 +144,7 @@ public class StudentInfoActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 mPosition=position;
-                for (int i = 0; i< listView.getCount();i++) {
+                for (int i = 0; i< listView.getCount(); i++) {
                     if (i == mPosition) {
                         listView.getChildAt(i).setBackgroundColor(getResources().getColor(R.color.odd_element));
                     } else {

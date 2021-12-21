@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private SQLiteDatabase db;
     private Cursor userCursor;
     private Integer userId=0;
+    private Integer lastID=0;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -122,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
             Student st = new Student(userCursor.getInt(0), userCursor.getString(1), userCursor.getString(2), userCursor.getString(3));
             mStudents.add(st);
         }
+        lastID=userId;
         createStudentList(null);
 
         mIntentActivityResultLauncher = registerForActivityResult(
@@ -204,10 +206,11 @@ public class MainActivity extends AppCompatActivity {
     public void addStudent(String fio, String facultet, String group) {
         Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
         mPosition = -1;
-        intent.putExtra("student", new Student(userId+1, "", "", ""));
+        intent.putExtra("student", new Student(lastID+1, "", "", ""));
         mMenu.findItem(R.id.stChange).setVisible(true);
         mMenu.findItem(R.id.stDelete).setVisible(true);
         mIntentActivityResultLauncher.launch(intent);
+        lastID++;
     }
 
     public void deleteStudent(int position) {
@@ -253,16 +256,16 @@ public class MainActivity extends AppCompatActivity {
                 cv.put(dbHelperStudent.COLUMN_faculty, sdb.getFaculty());
                 cv.put(dbHelperStudent.COLUMN_group, sdb.getGroup());
                 Log.d(TAG, Integer.toString(sdb.getID()));
-
                 try {
                     if (sdb.getID() <= userId) {
                         Log.d(TAG, "update");
-                        db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + userId, null);
+                        Log.d(TAG, cv.toString());
+                        db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + sdb.getID(), null);
                     } else {
                         Log.d(TAG, "insert");
                         db.insert(dbHelperStudent.TABLE, null, cv);
                     }
-//                    db.execSQL("insert or replace into students (ID, FIO, Faculty, grupa) values ("+ sdb.getID() +", '" + sdb.getFIO()+"', '" + sdb.getFaculty()+"', '"+ sdb.getGroup()+ "'); ");
+
                 }
                 catch (Exception e){
                     Log.d(TAG, "delete");
