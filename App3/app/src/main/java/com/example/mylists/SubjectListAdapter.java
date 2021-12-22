@@ -19,7 +19,6 @@ public class SubjectListAdapter extends BaseAdapter {
         mSubjects = subjects;
         mContext = context;
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
     }
 
     @Override

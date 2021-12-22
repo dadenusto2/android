@@ -56,9 +56,13 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         mMenu = menu;
-        if(mStudents.size() == 0 || mPosition==-1){
-            mMenu.findItem(R.id.stChange).setVisible(false);
-            mMenu.findItem(R.id.stDelete).setVisible(false);
+        try {
+            if (mStudents.size() == 0 || mPosition == -1) {
+                mMenu.findItem(R.id.stChange).setVisible(false);
+                mMenu.findItem(R.id.stDelete).setVisible(false);
+            }
+        }catch(Exception e){
+
         }
         return true;
     }
@@ -95,61 +99,55 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class dowloadFromDB extends AsyncTask<Void, Void, Void> {
+    class dowloadFromDB extends AsyncTask<Void, ArrayList<Student>, ArrayList<Student>>{
+        ArrayList<Student> resultStudents = new ArrayList<>();
         @Override
         protected void onPreExecute() {
             Log.d(TAG, "Wait to download students from db");
             super.onPreExecute();
         }
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected ArrayList<Student> doInBackground(Void... voids) {
             Log.d(TAG, "Start download students from db");
             dbHelperStudent = new dbHelperStudent(getApplicationContext());
             db = dbHelperStudent.getReadableDatabase();
             userCursor =  db.rawQuery("select * from "+ dbHelperStudent.TABLE, null);
-//        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
-//        int size = sPref.getInt("count", 0);
-//        if (size>0){
-//            Gson gson = (new GsonBuilder()).create();
-//            for (int i=0;i<size;++i){
-//                String s = sPref.getString("student"+i, "");
-//                if(!s.equals("")){
-//                    Student st = gson.fromJson(s, Student.class);
-//                    mStudents.add(st);
-//                }
-//            }
-//        }
             while(userCursor.moveToNext()) {
                 userId=userCursor.getInt(0);
                 Log.d(TAG, "Downloaded "+userId+" student!");
                 Student st = new Student(userCursor.getInt(0), userCursor.getString(1), userCursor.getString(2), userCursor.getString(3));
-                mStudents.add(st);
+                resultStudents.add(st);
             }
             lastID=userId;
-            createStudentList(null);
-            return null;
+            return resultStudents;
         }
         @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
+        public void onPostExecute(ArrayList<Student> results) {
+            super.onPostExecute(results);
+            Log.d("APP3", "Size "+ String.valueOf(results.size()));
+            mStudents = results;
+            createStudentList(null);
             Log.d(TAG, "End download students from db");
         }
     }
 
-    class saveToDB extends AsyncTask<Void, Void, Void> {
+    class saveToDB extends AsyncTask<ArrayList<Student>, ArrayList<Student>, Void> {
+        ArrayList<Student> resultStudents;
+
         @Override
         protected void onPreExecute() {
             Log.d(TAG, "Wait to save students to db");
             super.onPreExecute();
         }
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Void doInBackground(ArrayList<Student>... arrayLists) {
+            resultStudents = arrayLists[0];
             Log.d(TAG, "Start save students to db");
-            if(mStudents!=null) {
+            if(resultStudents!=null) {
                 Log.d(TAG, Integer.toString(userId));
-                Log.d(TAG, Integer.toString(mStudents.size()));
-                for (int i=0;i<mStudents.size();++i){
-                    Student sdb = mStudents.get(i);
+                Log.d(TAG, Integer.toString(resultStudents.size()));
+                for (int i=0;i<resultStudents.size();++i){
+                    Student sdb = resultStudents.get(i);
                     ContentValues cv = new ContentValues();
                     cv.put(dbHelperStudent.COLUMN_ID, sdb.getID());
                     cv.put(dbHelperStudent.COLUMN_fio, sdb.getFIO());
@@ -169,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "delete");
                     dbHelperSubject dbHelperSubject = new dbHelperSubject(getApplicationContext());
                     SQLiteDatabase dbC = dbHelperSubject.getReadableDatabase();
-                    dbC.delete(com.example.mylists.dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
+                    dbC.delete(com.example.mylists.dbHelperSubject.TABLE, "id_student = ?", new String[]{String.valueOf(delStdID.get(i))});
                     db.delete(com.example.mylists.dbHelperStudent.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
                 }
             }
@@ -184,12 +182,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        dowloadFromDB dfd = new dowloadFromDB();
+        dfd.execute();
         setContentView(R.layout.main_ll);
         ((LinearLayout) findViewById(R.id.llInput)).setVisibility(
                 ((Button) findViewById(R.id.bAddStudent)).getVisibility()
         );
         mPosition = -1;
-        mStudents = new ArrayList<>();
+        //mStudents = new ArrayList<>();
         delStdID = new ArrayList<>();
 //        dbHelperStudent = new dbHelperStudent(getApplicationContext());
 //        db = dbHelperStudent.getReadableDatabase();
@@ -213,12 +213,6 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //        lastID=userId;
 //        createStudentList(null);
-        try {
-            dowloadFromDB dfd = new dowloadFromDB();
-            dfd.execute();
-        }catch (Exception e){
-
-        }
         mIntentActivityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 new ActivityResultCallback<ActivityResult>() {
@@ -333,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onDestroy(){
         saveToDB std = new saveToDB();
-        std.execute();
+        std.execute(mStudents);
 //        if(mStudents!=null) {
 ////            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
 ////            GsonBuilder builder = new GsonBuilder();
