@@ -5,11 +5,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -72,12 +74,79 @@ public class StudentInfoActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+    class downloadFromDB extends AsyncTask<Student,Student,Student> {
+        Student st;
+
+        @Override
+        protected void onPreExecute() {
+            Log.d(TAG, "Wait to download subjects from db");
+            super.onPreExecute();
+        }
+        @Override
+        protected Student doInBackground(Student... students) {
+            st = students[0];
+            Log.d(TAG, "Start download subjects from db");
+            dbHelperSubject = new dbHelperSubject(getApplicationContext());
+            db = dbHelperSubject.getReadableDatabase();
+            userCursor = db.rawQuery("select * from "+ dbHelperSubject.TABLE, null);
+//            Gson gson = (new GsonBuilder()).create();
+            while (userCursor.moveToNext()) {
+                if (userCursor.getInt(1)==s.getID()) {
+                    Subject sb = new Subject(userCursor.getInt(0), userCursor.getInt(1), userCursor.getString(2), userCursor.getInt(3));
+                    Log.d(TAG, sb.toString());
+                    st.addSubject(sb);
+                }
+            }
+            return st;
+        }
+        @Override
+        public void onPostExecute(Student results) {
+            super.onPostExecute(results);
+            s = st;
+            createSubjectList(null);
+            Log.d(TAG, "End download subjects from db");
+        }
+    }
+
+    class saveToDB extends AsyncTask<Student, Student, Void> {
+        @Override
+        protected void onPreExecute() {
+            Log.d(TAG, "Wait to save subjects to db");
+            super.onPreExecute();
+        }
+        @Override
+        protected Void doInBackground(Student... students) {
+            Student st = students[0];
+            for (int i = 0; i < st.getSubjects().size(); ++i) {
+                Subject sb = st.getSubjects().get(i);
+                Log.d(TAG, sb.getName());
+//                db.execSQL("insert or replace into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
+                if(sb.getID()==null){
+                    db.execSQL("insert into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
+                }
+                else{
+                    db.execSQL("replace into subjects (id, id_student, Name, mark) values ('" +sb.getID()+"', '"  + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
+                }
+            }
+            for (int i=0; i<delList.size();i++){
+                db.delete(dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(delList.get(i))});
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            Log.d(TAG, "End save subjects to db");
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_info);
         s = getIntent().getParcelableExtra("student");
+        downloadFromDB dfb = new downloadFromDB();
+        dfb.execute(s);
         ((EditText) findViewById(R.id.etASI_FIO)).setText(s.getFIO());
         ((EditText) findViewById(R.id.etASI_Faculty)).setText(s.getFaculty());
         ((EditText) findViewById(R.id.etASI_Group)).setText(s.getGroup());
@@ -87,21 +156,21 @@ public class StudentInfoActivity extends AppCompatActivity {
 
         mSubjects = new ArrayList<>();
         mPosition = -1;
-        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
-        int size = sPref.getInt("count", 0);
-//        String st = s.getFIO();
-        dbHelperSubject = new dbHelperSubject(getApplicationContext());
-        db = dbHelperSubject.getReadableDatabase();
-        userCursor = db.rawQuery("select * from "+ dbHelperSubject.TABLE, null);
-//            Gson gson = (new GsonBuilder()).create();
-        while (userCursor.moveToNext()) {
-            if (userCursor.getInt(1)==s.getID()) {
-                Subject sb = new Subject(userCursor.getInt(0), userCursor.getInt(1), userCursor.getString(2), userCursor.getInt(3));
-                Log.d(TAG, sb.toString());
-                s.addSubject(sb);
-            }
-        }
-        createSubjectList(null);
+//        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
+//        int size = sPref.getInt("count", 0);
+////        String st = s.getFIO();
+//        dbHelperSubject = new dbHelperSubject(getApplicationContext());
+//        db = dbHelperSubject.getReadableDatabase();
+//        userCursor = db.rawQuery("select * from "+ dbHelperSubject.TABLE, null);
+////            Gson gson = (new GsonBuilder()).create();
+//        while (userCursor.moveToNext()) {
+//            if (userCursor.getInt(1)==s.getID()) {
+//                Subject sb = new Subject(userCursor.getInt(0), userCursor.getInt(1), userCursor.getString(2), userCursor.getInt(3));
+//                Log.d(TAG, sb.toString());
+//                s.addSubject(sb);
+//            }
+//        }
+//        createSubjectList(null);
 //        ((ListView) findViewById(R.id.lvASI_Subjects)).setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 //            @Override
 //            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -133,6 +202,7 @@ public class StudentInfoActivity extends AppCompatActivity {
 //        });
     }
     ArrayList<Subject> mSubjects;
+    ArrayList<Integer> delList= new ArrayList<>();
     SubjectListAdapter mSubjectListAdapter;
 
     public void createSubjectList(View view) {
@@ -292,10 +362,10 @@ public class StudentInfoActivity extends AppCompatActivity {
         inputDialog.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                db.delete(dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(position)});
-                Subject sb = s.getSubjects().get(position);
-                if (sb.getID()!=null){
-                    db.delete(dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(sb.getID())});
+                try {
+                    delList.add(s.getSubjects().get(position).getID());
+                }catch (Exception e){
+
                 }
                 s.getSubjects().remove(position);
                 if(s.getSubjects().size()==0){
@@ -327,12 +397,15 @@ public class StudentInfoActivity extends AppCompatActivity {
 //            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
 //            GsonBuilder builder = new GsonBuilder();
 //            Gson gson = builder.create();
+            saveToDB std = new saveToDB();
+            std.execute(s);
             Student newS = new Student(
                     s.getID(),
                     ((EditText) findViewById(R.id.etASI_FIO)).getText().toString(),
                     ((EditText) findViewById(R.id.etASI_Faculty)).getText().toString(),
                     ((EditText) findViewById(R.id.etASI_Group)).getText().toString()
             );
+
 //            ed.putInt("count", s.getSubjects().size());
 //            String st = newS.getFIO();
 //            for (int i = 0; i < s.getSubjects().size(); ++i) {
@@ -341,17 +414,17 @@ public class StudentInfoActivity extends AppCompatActivity {
 //                ed.putString(st + "_subject" + i, sb);
 //            }
 //            ed.commit();
-            for (int i = 0; i < s.getSubjects().size(); ++i) {
-                Subject sb = s.getSubjects().get(i);
-                Log.d(TAG, sb.getName());
-//                db.execSQL("insert or replace into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
-                if(sb.getID()==null){
-                    db.execSQL("insert into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
-                }
-                else{
-                    db.execSQL("replace into subjects (id, id_student, Name, mark) values ('" +sb.getID()+"', '"  + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
-                }
-            }
+//            for (int i = 0; i < s.getSubjects().size(); ++i) {
+//                Subject sb = s.getSubjects().get(i);
+//                Log.d(TAG, sb.getName());
+////                db.execSQL("insert or replace into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
+//                if(sb.getID()==null){
+//                    db.execSQL("insert into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
+//                }
+//                else{
+//                    db.execSQL("replace into subjects (id, id_student, Name, mark) values ('" +sb.getID()+"', '"  + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
+//                }
+//            }
             Intent intent = new Intent();
             intent.putExtra("student", newS);
             setResult(RESULT_OK, intent);
