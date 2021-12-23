@@ -76,7 +76,6 @@ public class StudentInfoActivity extends AppCompatActivity {
     }
     class downloadFromDB extends AsyncTask<Student,Student,Student> {
         Student st;
-
         @Override
         protected void onPreExecute() {
             Log.d(TAG, "Wait to download subjects from db");
@@ -88,6 +87,7 @@ public class StudentInfoActivity extends AppCompatActivity {
             Log.d(TAG, "Start download subjects from db");
             dbHelperSubject = new dbHelperSubject(getApplicationContext());
             db = dbHelperSubject.getReadableDatabase();
+            dbHelperSubject.onCreate(db);
             userCursor = db.rawQuery("select * from "+ dbHelperSubject.TABLE, null);
 //            Gson gson = (new GsonBuilder()).create();
             while (userCursor.moveToNext()) {
