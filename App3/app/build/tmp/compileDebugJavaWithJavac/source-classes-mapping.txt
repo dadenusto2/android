@@ -1,0 +1,39 @@
+com/example/mylists/Student.java
+ com.example.mylists.Student
+ com.example.mylists.Student$1
+com/example/mylists/dbHelperStudent.java
+ com.example.mylists.dbHelperStudent
+com/example/mylists/dbHelperSubject.java
+ com.example.mylists.dbHelperSubject
+com/example/mylists/BuildConfig.java
+ com.example.mylists.BuildConfig
+com/example/mylists/dowloadFromDB.java
+ com.example.mylists.dowloadFromDB
+com/example/mylists/SubjectListAdapter.java
+ com.example.mylists.SubjectListAdapter
+com/example/mylists/StudentListAdapter.java
+ com.example.mylists.StudentListAdapter
+com/example/mylists/Subject.java
+ com.example.mylists.Subject
+ com.example.mylists.Subject$1
+com/example/mylists/MainActivity.java
+ com.example.mylists.MainActivity
+ com.example.mylists.MainActivity$1
+ com.example.mylists.MainActivity$2
+ com.example.mylists.MainActivity$3
+ com.example.mylists.MainActivity$4
+ com.example.mylists.MainActivity$dowloadFromDB
+ com.example.mylists.MainActivity$saveToDB
+com/example/mylists/StudentInfoActivity.java
+ com.example.mylists.StudentInfoActivity
+ com.example.mylists.StudentInfoActivity$1
+ com.example.mylists.StudentInfoActivity$2
+ com.example.mylists.StudentInfoActivity$3
+ com.example.mylists.StudentInfoActivity$4
+ com.example.mylists.StudentInfoActivity$5
+ com.example.mylists.StudentInfoActivity$5$1
+ com.example.mylists.StudentInfoActivity$6
+ com.example.mylists.StudentInfoActivity$7
+ com.example.mylists.StudentInfoActivity$8
+ com.example.mylists.StudentInfoActivity$downloadFromDB
+ com.example.mylists.StudentInfoActivity$saveToDB
