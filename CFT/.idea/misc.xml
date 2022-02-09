@@ -3,9 +3,17 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/android/CFT/app/src/main/res/layout-land/activity_main.xml" value="0.17724867724867724" />
+        <entry key="..\:/android/CFT/app/src/main/res/layout-land/layout_land.xml" value="0.17724867724867724" />
+        <entry key="..\:/android/CFT/app/src/main/res/layout-land/menu.xml" value="0.17724867724867724" />
+        <entry key="..\:/android/CFT/app/src/main/res/layout-land/rate.xml" value="0.165" />
+        <entry key="..\:/android/CFT/app/src/main/res/layout-land/rate_change.xml" value="0.17724867724867724" />
         <entry key="..\:/android/CFT/app/src/main/res/layout/activity_main.xml" value="0.264" />
         <entry key="..\:/android/CFT/app/src/main/res/layout/menu.xml" value="0.25" />
         <entry key="..\:/android/CFT/app/src/main/res/layout/rate.xml" value="0.25" />
+        <entry key="..\:/android/CFT/app/src/main/res/layout/rate_change.xml" value="0.30885416666666665" />
+        <entry key="..\:/android/CFT/app/src/main/res/layout/rete_change.xml" value="0.30885416666666665" />
+        <entry key="..\:/android/CFT/app/src/main/res/menu/main_manu.xml" value="0.2546875" />
       </map>
     </option>
   </component>

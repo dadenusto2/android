@@ -3,11 +3,10 @@
     android:id="@+id/ll_rateElement"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_column="2"
-    android:gravity="center_horizontal|center_vertical">
+    android:gravity="center|center_horizontal|center_vertical">
 
     <TableLayout
-        android:layout_width="wrap_content"
+        android:layout_width="470dp"
         android:layout_height="wrap_content">
 
         <TableRow
@@ -16,7 +15,7 @@
 
             <TextView
                 android:id="@+id/tvName"
-                android:layout_width="195dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:textSize="20sp" />
@@ -24,36 +23,38 @@
     </TableLayout>
 
     <TableLayout
-        android:layout_width="wrap_content"
+        android:layout_width="210dp"
         android:layout_height="wrap_content">
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:gravity="end">
 
             <TextView
                 android:id="@+id/tvRate"
-                android:layout_width="195dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:gravity="center|end"
+                android:gravity="center|right|end"
+                android:text="123"
                 android:textSize="20sp" />
         </TableRow>
 
         <TableRow
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:gravity="end">
 
             <TextView
                 android:id="@+id/tvNominale"
-                android:layout_width="195dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:gravity="center|end"
+                android:gravity="center|right|end"
                 android:textSize="20sp" />
 
         </TableRow>
 
     </TableLayout>
-
 </LinearLayout>
