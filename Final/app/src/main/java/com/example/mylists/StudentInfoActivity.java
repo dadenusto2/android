@@ -1,37 +1,30 @@
 package com.example.mylists;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
-import android.widget.TextView;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
+// окно с информацией о студентах и их предметах
 public class StudentInfoActivity extends AppCompatActivity {
     private int mPosition;
     private Student s;
@@ -41,6 +34,10 @@ public class StudentInfoActivity extends AppCompatActivity {
     private SQLiteDatabase db;
     private Cursor userCursor;
     private static final String TAG = "App3";
+
+    ArrayList<Subject> mSubjects;
+    ArrayList<Integer> delList= new ArrayList<>();
+    SubjectListAdapter mSubjectListAdapter;
 
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.subject_menu, menu);
@@ -52,28 +49,30 @@ public class StudentInfoActivity extends AppCompatActivity {
         return true;
     }
 
+    // меню выбора опций
     @SuppressLint("NonConstantResourceId")
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()) {
-            case R.id.addSb:{
+            case R.id.addSb:{// добавить предмет
                 addSubject(true);
                 return true;
             }
-            case R.id.changeSb:{
+            case R.id.changeSb:{// изменить предмет
                 changeSubject(mPosition, true);
                 return true;
             }
-            case R.id.deleteSb:{
+            case R.id.deleteSb:{// удалить предмет
                 deleteSubject(mPosition);
                 return true;
             }
-            case R.id.back:{
+            case R.id.back:{// возврат к предыдущему окну
                 onBackPressed();
                 return true;
             }
         }
         return super.onOptionsItemSelected(item);
     }
+    // полчуть данные по прдемета из бд
     class downloadFromDB extends AsyncTask<Student,Student,Student> {
         Student st;
         @Override
@@ -108,6 +107,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         }
     }
 
+    // сохранить данные о предметах в БД
     class saveToDB extends AsyncTask<Student, Student, Void> {
         @Override
         protected void onPreExecute() {
@@ -144,66 +144,18 @@ public class StudentInfoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_info);
-        s = getIntent().getParcelableExtra("student");
+        s = getIntent().getParcelableExtra("student");// полчуев из intent данные о студенте
         downloadFromDB dfb = new downloadFromDB();
         dfb.execute(s);
+        // добавляем данные в поля
         ((EditText) findViewById(R.id.etASI_FIO)).setText(s.getFIO());
         ((EditText) findViewById(R.id.etASI_Faculty)).setText(s.getFaculty());
         ((EditText) findViewById(R.id.etASI_Group)).setText(s.getGroup());
 
-//        mSubjectListAdapter = new SubjectListAdapter(s.getSubjects(), StudentInfoActivity.this);
-//        ((ListView) findViewById(R.id.lvASI_Subjects)).setAdapter(mSubjectListAdapter);
-
         mSubjects = new ArrayList<>();
+        delList= new ArrayList<>();
         mPosition = -1;
-//        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
-//        int size = sPref.getInt("count", 0);
-////        String st = s.getFIO();
-//        dbHelperSubject = new dbHelperSubject(getApplicationContext());
-//        db = dbHelperSubject.getReadableDatabase();
-//        userCursor = db.rawQuery("select * from "+ dbHelperSubject.TABLE, null);
-////            Gson gson = (new GsonBuilder()).create();
-//        while (userCursor.moveToNext()) {
-//            if (userCursor.getInt(1)==s.getID()) {
-//                Subject sb = new Subject(userCursor.getInt(0), userCursor.getInt(1), userCursor.getString(2), userCursor.getInt(3));
-//                Log.d(TAG, sb.toString());
-//                s.addSubject(sb);
-//            }
-//        }
-//        createSubjectList(null);
-//        ((ListView) findViewById(R.id.lvASI_Subjects)).setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-//                AlertDialog.Builder quitDialog = new AlertDialog.Builder(StudentInfoActivity.this);
-//                quitDialog.setTitle("Удалить дисцеплину\"" + s.getSubjects().get(i).getName() + "\"?");
-//
-//                quitDialog.setPositiveButton("Да", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialogInterface, int i) {
-//                        s.getSubjects().remove(i);
-//                        mSubjectListAdapter.notifyDataSetChanged();
-//                    }
-//                })
-//                        .setNegativeButton("Нет", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialogInterface, int i) {
-//
-//                            }
-//                        });
-//                quitDialog.show();
-//                return false;
-//            }
-//        });
-//        ((ListView) findViewById(R.id.lvASI_Subjects)).setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//                showPopupMenu(view, i);
-//            }
-//        });
     }
-    ArrayList<Subject> mSubjects;
-    ArrayList<Integer> delList= new ArrayList<>();
-    SubjectListAdapter mSubjectListAdapter;
 
     public void createSubjectList(View view) {
         ListView listView = findViewById(R.id.lvASI_Subjects);
@@ -265,7 +217,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         });
         popupMenu.show();
     }
-
+    // добавление предмета
     public void addSubject(boolean b) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
         inputDialog.setTitle("Добавление оценки");
@@ -275,7 +227,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         final EditText mName = vv.findViewById(R.id.editDialog_subjectName);
         final Spinner mMark = vv.findViewById(R.id.sDialog_mark);
         if (!b)
-            mName.setError("Не введино название");
+            mName.setError("Не введено название");
         inputDialog.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -307,6 +259,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         return 0;
     }
 
+    // изменение предмета
     public void changeSubject(int position, boolean b) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
         inputDialog.setTitle("Изменение оценки");
@@ -319,11 +272,11 @@ public class StudentInfoActivity extends AppCompatActivity {
         mName.setText(s.getSubjects().get(position).getName());
         mMark.setSelection(getIndex(mMark, s.getSubjects().get(position).getMark()));
         if (!b)
-            mName.setError("Не введино название");
+            mName.setError("Не введено название");
         inputDialog.setPositiveButton("Изменить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                if (!mName.getText().toString().isEmpty()) {
+                if (!mName.getText().toString().isEmpty()) {// если название предмета введено, то сохранем его
                     s.getSubjects().set(mPosition, new Subject(
                             mID,
                             s.getID(),
@@ -334,10 +287,10 @@ public class StudentInfoActivity extends AppCompatActivity {
                     mMenu.findItem(R.id.deleteSb).setVisible(false);
                     mSubjectListAdapter.notifyDataSetChanged();
                 }
-                else {
+                else {// если название предмета не введено, то снова его запускаем
                     AlertDialog alertDialog = new AlertDialog.Builder(StudentInfoActivity.this).create();
-                    alertDialog.setTitle("Ошибка ввода");
-                    alertDialog.setMessage("Название оценки не ввидено!");
+                    alertDialog.setTitle("Ошибка ввода!");
+                    alertDialog.setMessage("Название оценки не введено!");
                     alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
@@ -345,7 +298,7 @@ public class StudentInfoActivity extends AppCompatActivity {
                                 }
                             });
                     alertDialog.show();
-                    changeSubject(position, false);
+                    changeSubject(position,false);
                 }
             }
 
@@ -354,6 +307,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         inputDialog.show();
     }
 
+    // удаление предмета
     public void deleteSubject(int position) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(StudentInfoActivity.this);
         inputDialog.setTitle("Удалить оценку?");
@@ -362,7 +316,7 @@ public class StudentInfoActivity extends AppCompatActivity {
         inputDialog.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                try {
+                try {// добавлем id оценки в список
                     delList.add(s.getSubjects().get(position).getID());
                 }catch (Exception e){
 
@@ -379,7 +333,9 @@ public class StudentInfoActivity extends AppCompatActivity {
         inputDialog.show();
     }
 
-    public void clSave(View view) {
+    // сохранить изменения
+    public void clSave() {
+        // если введены не все данные по студенту, то их надо ввести
         if (((EditText) findViewById(R.id.etASI_FIO)).getText().toString().isEmpty()||
             ((EditText) findViewById(R.id.etASI_Faculty)).getText().toString().isEmpty()||
             ((EditText) findViewById(R.id.etASI_Group)).getText().toString().isEmpty()){
@@ -387,16 +343,13 @@ public class StudentInfoActivity extends AppCompatActivity {
             EditText mFaculty = findViewById(R.id.etASI_Faculty);
             EditText mGroup = findViewById(R.id.etASI_Group);
             if (((EditText) findViewById(R.id.etASI_FIO)).getText().toString().isEmpty())
-                mFIO.setError("Не введино ФИО");
+                mFIO.setError("Не введено ФИО!");
             if (((EditText) findViewById(R.id.etASI_Faculty)).getText().toString().isEmpty())
-                mFaculty.setError("Не введин факультет");
+                mFaculty.setError("Не введён факультет!");
             if (((EditText) findViewById(R.id.etASI_Group)).getText().toString().isEmpty())
-                mGroup.setError("Не введина группа");
+                mGroup.setError("Не введена группа!");
         }
-        else{
-//            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
-//            GsonBuilder builder = new GsonBuilder();
-//            Gson gson = builder.create();
+        else{//если вс ввелено сохраняем
             saveToDB std = new saveToDB();
             std.execute(s);
             Student newS = new Student(
@@ -405,26 +358,6 @@ public class StudentInfoActivity extends AppCompatActivity {
                     ((EditText) findViewById(R.id.etASI_Faculty)).getText().toString(),
                     ((EditText) findViewById(R.id.etASI_Group)).getText().toString()
             );
-
-//            ed.putInt("count", s.getSubjects().size());
-//            String st = newS.getFIO();
-//            for (int i = 0; i < s.getSubjects().size(); ++i) {
-//                newS.addSubject(s.getSubjects().get(i));
-//                String sb = gson.toJson(s.getSubjects().get(i));
-//                ed.putString(st + "_subject" + i, sb);
-//            }
-//            ed.commit();
-//            for (int i = 0; i < s.getSubjects().size(); ++i) {
-//                Subject sb = s.getSubjects().get(i);
-//                Log.d(TAG, sb.getName());
-////                db.execSQL("insert or replace into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
-//                if(sb.getID()==null){
-//                    db.execSQL("insert into subjects (id_student, Name, mark) values ('" + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
-//                }
-//                else{
-//                    db.execSQL("replace into subjects (id, id_student, Name, mark) values ('" +sb.getID()+"', '"  + sb.getIDStudent()+"', '" + sb.getName()+"', '"+ sb.getMark()+ "'); ");
-//                }
-//            }
             Intent intent = new Intent();
             intent.putExtra("student", newS);
             setResult(RESULT_OK, intent);
@@ -436,13 +369,13 @@ public class StudentInfoActivity extends AppCompatActivity {
         finish();
     }
 
-    public void onBackPressed() {
+    public void onBackPressed() {// при нажатии назад появляется диалог сохраняем или нет
         AlertDialog.Builder quitDialog = new AlertDialog.Builder(this);
         quitDialog.setTitle("Сохранить изменения?");
         quitDialog.setPositiveButton("Да", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                clSave(null);
+                clSave();
             }
         })
                 .setNegativeButton("Нет", new DialogInterface.OnClickListener() {

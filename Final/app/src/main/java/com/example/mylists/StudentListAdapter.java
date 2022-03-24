@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -63,12 +62,6 @@ public class StudentListAdapter extends BaseAdapter {
 
         for (int i = 0; i < mStudents.size(); ++i){
             view = parent.getChildAt(i);
-            /*if(i%2==1) ((LinearLayout) view.findViewById(R.id.llElement)).setBackgroundColor(
-                    mContext.getResources().getColor(R.color.odd_element)
-            );
-            else((LinearLayout) view.findViewById(R.id.llElement)).setBackgroundColor(
-                    mContext.getResources().getColor(R.color.white)
-            );  */
             if (((TextView) view.findViewById(R.id.tvElementFaculty)).getText().toString().equals(faculty))
                 ((TextView) view.findViewById(R.id.tvElementFIO)).setTextColor(
                     mContext.getResources().getColor(R.color.red)
@@ -76,7 +69,6 @@ public class StudentListAdapter extends BaseAdapter {
             else ((TextView) view.findViewById(R.id.tvElementFIO)).setTextColor(
                     mContext.getResources().getColor(R.color.black)
             );
-
         }
     }
 }

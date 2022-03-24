@@ -2,7 +2,7 @@ package com.example.mylists;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
+// класс предмета
 public class Subject implements Parcelable {
     Integer mID;
     Integer mIDStudent;

@@ -3,7 +3,6 @@ package com.example.mylists;
 //фио студентов и тд
 
 /*
-Новый проект
 открывается список студентов
 выбранный студент подсвечивает
 в меню добавить удалить изменить студента
@@ -12,19 +11,12 @@ package com.example.mylists;
 меню аналогично студента
  */
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
@@ -38,25 +30,31 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "App3";
-    private int mPosition;
-    private Menu mMenu;
-    private ActivityResultLauncher<Intent> mIntentActivityResultLauncher;
-    private dbHelperStudent dbHelperStudent;
+    private static final String TAG = "Final";// тэг для логов
+    private int mPosition;// выбранный студент
+    private Menu mMenu;// меню
+    private ActivityResultLauncher<Intent> mIntentActivityResultLauncher;// активность с инфо о студенте
+    private dbHelperStudent dbHelperStudent;// бд студентов
     private SQLiteDatabase db;
-    private Cursor userCursor;
-    private Integer userId=0;
-    private Integer lastID=0;
+    private Integer userId=0;// последний Id
+    private Integer lastID=0;// последний Id студента (с учетом добавленных)
 
+    // создание меню выбора опций
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         mMenu = menu;
         try {
+            // если нет данных, не показываем кнопки изменения и добавления студента
             if (mStudents.size() == 0 || mPosition == -1) {
                 mMenu.findItem(R.id.stChange).setVisible(false);
                 mMenu.findItem(R.id.stDelete).setVisible(false);
@@ -68,9 +66,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint("NonConstantResourceId")
+    // задание дейсвия на кнопки выбора опций
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()) {
-            case R.id.miAbout:{
+            case R.id.miAbout:{// о программе
                 AlertDialog.Builder infoDialog = new AlertDialog.Builder(MainActivity.this);
                 infoDialog.setTitle("О программе");
                 infoDialog.setMessage("Это программа группы 4ИТ/2!");
@@ -79,19 +78,19 @@ public class MainActivity extends AppCompatActivity {
                 infoDialog.show();
                 return true;
             }
-            case R.id.stAdd:{
-                addStudent("", "", "");
+            case R.id.stAdd:{// добавить нового студента
+                addStudent();
                 return true;
             }
-            case R.id.stChange:{
+            case R.id.stChange:{// добавить сущесвующего студента
                 changeStudent(mPosition);
                 return true;
             }
-            case R.id.stDelete:{
+            case R.id.stDelete:{// добавить текущего студента
                 deleteStudent(mPosition);
                 return true;
             }
-            case R.id.miExit:{
+            case R.id.miExit:{// выход
                 finish();
                 return true;
             }
@@ -99,15 +98,18 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // получить студентов из БД через AsyncTask
     class dowloadFromDB extends AsyncTask<Void, ArrayList<Student>, ArrayList<Student>>{
+        // список для студентов
         ArrayList<Student> resultStudents = new ArrayList<>();
+        Cursor userCursor;// для загрузки
         @Override
-        protected void onPreExecute() {
+        protected void onPreExecute() {// ждем вызова
             Log.d(TAG, "Wait to download students from db");
             super.onPreExecute();
         }
         @Override
-        protected ArrayList<Student> doInBackground(Void... voids) {
+        protected ArrayList<Student> doInBackground(Void... voids) {// получаем данные из бд
             Log.d(TAG, "Start download students from db");
             dbHelperStudent = new dbHelperStudent(getApplicationContext());
             db = dbHelperStudent.getReadableDatabase();
@@ -122,18 +124,19 @@ public class MainActivity extends AppCompatActivity {
             return resultStudents;
         }
         @Override
+        // передаем внутренний список студентов во внешний список
         public void onPostExecute(ArrayList<Student> results) {
             super.onPostExecute(results);
-            Log.d("APP3", "Size "+ String.valueOf(results.size()));
+            Log.d(TAG, "Size "+ String.valueOf(results.size()));
             mStudents = results;
-            createStudentList(null);
+            createStudentList();
             Log.d(TAG, "End download students from db");
         }
     }
 
+    // сохранение изменений в бд
     class saveToDB extends AsyncTask<ArrayList<Student>, ArrayList<Student>, Void> {
         ArrayList<Student> resultStudents;
-
         @Override
         protected void onPreExecute() {
             Log.d(TAG, "Wait to save students to db");
@@ -154,10 +157,12 @@ public class MainActivity extends AppCompatActivity {
                     cv.put(dbHelperStudent.COLUMN_faculty, sdb.getFaculty());
                     cv.put(dbHelperStudent.COLUMN_group, sdb.getGroup());
                     Log.d(TAG, Integer.toString(sdb.getID()));
+                    // если текущий id был раньше, то обновляем
                     if (sdb.getID() <= userId) {
                         Log.d(TAG, "update");
                         Log.d(TAG, cv.toString());
                         db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + sdb.getID(), null);
+                        // если текущего Id не было (те новый), то добавляем
                     } else if (sdb.getID() > userId){
                         Log.d(TAG, "insert");
                         db.insert(dbHelperStudent.TABLE, null, cv);
@@ -179,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "End save students to db");
         }
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -191,28 +197,6 @@ public class MainActivity extends AppCompatActivity {
         mPosition = -1;
         //mStudents = new ArrayList<>();
         delStdID = new ArrayList<>();
-//        dbHelperStudent = new dbHelperStudent(getApplicationContext());
-//        db = dbHelperStudent.getReadableDatabase();
-//        userCursor =  db.rawQuery("select * from "+ dbHelperStudent.TABLE, null);
-////        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
-////        int size = sPref.getInt("count", 0);
-////        if (size>0){
-////            Gson gson = (new GsonBuilder()).create();
-////            for (int i=0;i<size;++i){
-////                String s = sPref.getString("student"+i, "");
-////                if(!s.equals("")){
-////                    Student st = gson.fromJson(s, Student.class);
-////                    mStudents.add(st);
-////                }
-////            }
-////        }
-//        while(userCursor.moveToNext()) {
-//            userId=userCursor.getInt(0);
-//            Student st = new Student(userCursor.getInt(0), userCursor.getString(1), userCursor.getString(2), userCursor.getString(3));
-//            mStudents.add(st);
-//        }
-//        lastID=userId;
-//        createStudentList(null);
         mIntentActivityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 new ActivityResultCallback<ActivityResult>() {
@@ -238,12 +222,15 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
     }
-
+    // список студентов
     ArrayList<Student> mStudents;
+    // список id студетов, которых надо будет elfkbnm
     ArrayList<Integer> delStdID;
+    // адаптер списка
     StudentListAdapter mStudentListAdapter;
 
-    public void createStudentList(View view) {
+    // создание списка студетов
+    public void createStudentList() {
         ListView listView = findViewById(R.id.lvList2);
         mStudentListAdapter=new StudentListAdapter(mStudents,this);
         listView.setAdapter(mStudentListAdapter);
@@ -254,6 +241,7 @@ public class MainActivity extends AppCompatActivity {
 
         AdapterView.OnItemLongClickListener clLStudent = new AdapterView.OnItemLongClickListener() {
             @Override
+            // долгое нажатие для снятия выбора и скрытия пунктов меню "изменить и удалить"
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                 for (int j = 0; j< listView.getCount();j++) {
                     listView.getChildAt(j).setBackgroundColor(getResources().getColor(R.color.white));
@@ -266,6 +254,7 @@ public class MainActivity extends AppCompatActivity {
         };
         AdapterView.OnItemClickListener clStudent = new AdapterView.OnItemClickListener() {
             @Override
+            // при нажатии на студента он подсвечивается и появляются пункты меню "изменить и удалить"
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 for (int j = 0; j < listView.getCount(); j++) {
                     if (j == i)
@@ -281,16 +270,19 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemLongClickListener(clLStudent);
         listView.setOnItemClickListener(clStudent);
     }
+    // изменение студента
     public void changeStudent(int position) {
+        // в intent передается текущий студент
         Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
         Log.d(TAG, mStudents.get(mPosition).toString());
         intent.putExtra("student", mStudents.get(mPosition));
         mMenu.findItem(R.id.stChange).setVisible(true);
         mMenu.findItem(R.id.stDelete).setVisible(true);
+        // вызываем окно с информацией о студнете и предметах
         mIntentActivityResultLauncher.launch(intent);
     }
-
-    public void addStudent(String fio, String facultet, String group) {
+    // сохдание нового студента
+    public void addStudent() {
         Intent intent = new Intent(MainActivity.this, StudentInfoActivity.class);
         mPosition = -1;
         intent.putExtra("student", new Student(lastID+1, "", "", ""));
@@ -299,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
         mIntentActivityResultLauncher.launch(intent);
         lastID++;
     }
-
+    // удаляем студента через AlertDialog
     public void deleteStudent(int position) {
         AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
         inputDialog.setTitle("Удалить студента!");
@@ -325,46 +317,10 @@ public class MainActivity extends AppCompatActivity {
         inputDialog.show();
     }
 
+    // при выходе сохраняем данные в бд
     protected void onDestroy(){
         saveToDB std = new saveToDB();
         std.execute(mStudents);
-//        if(mStudents!=null) {
-////            SharedPreferences.Editor ed = getPreferences(MODE_PRIVATE).edit();
-////            GsonBuilder builder = new GsonBuilder();
-////            Gson gson = builder.create();
-////            ed.putInt("count", mStudents.size());
-//
-//            Log.d(TAG, Integer.toString(userId));
-//            Log.d(TAG, Integer.toString(mStudents.size()));
-//            for (int i=0;i<mStudents.size();++i){
-//                Student sdb = mStudents.get(i);
-////                String s = gson.toJson(mStudents.get(i));
-////                ed.putString("student"+i, s);
-//                ContentValues cv = new ContentValues();
-//                cv.put(dbHelperStudent.COLUMN_ID, sdb.getID());
-//                cv.put(dbHelperStudent.COLUMN_fio, sdb.getFIO());
-//                cv.put(dbHelperStudent.COLUMN_faculty, sdb.getFaculty());
-//                cv.put(dbHelperStudent.COLUMN_group, sdb.getGroup());
-//                Log.d(TAG, Integer.toString(sdb.getID()));
-//                if (sdb.getID() <= userId) {
-//                    Log.d(TAG, "update");
-//                    Log.d(TAG, cv.toString());
-//                    db.update(dbHelperStudent.TABLE, cv, dbHelperStudent.COLUMN_ID + "=" + sdb.getID(), null);
-//                } else if (sdb.getID() > userId){
-//                    Log.d(TAG, "insert");
-//                    db.insert(dbHelperStudent.TABLE, null, cv);
-//                }
-//            }
-//
-//            for (int i=0; i<delStdID.size();i++){
-//                Log.d(TAG, "delete");
-//                dbHelperSubject dbHelperSubject = new dbHelperSubject(getApplicationContext());
-//                SQLiteDatabase dbC = dbHelperSubject.getReadableDatabase();
-//                dbC.delete(com.example.mylists.dbHelperSubject.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
-//                db.delete(com.example.mylists.dbHelperStudent.TABLE, "id = ?", new String[]{String.valueOf(delStdID.get(i))});
-//            }
-////            ed.commit();
-//        }
         super.onDestroy();
     }
 }

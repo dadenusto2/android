@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+// Для подключения к таблице с предметами
 public class dbHelperSubject extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "app.db"; // название бд
     private static final int SCHEMA = 1; // версия базы данных
